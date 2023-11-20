@@ -21,16 +21,7 @@ class WaterResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.body = json.dumps(
-            {
-                "água": {
-                    "data": water_intake.date.strftime("%Y-%m-%d"),
-                    "valor": water_intake.milliliters,
-                    "explicação": water_intake.description,
-                    "urina excessiva?": water_intake.pee
-                }
-            }
-        )
+        resp.text = json.dumps(json.loads(str(water_intake)))
         resp.status = falcon.HTTP_OK
 
     def on_get_date(self, req: falcon.Request, resp: falcon.Response, water_intake_date: str):
@@ -53,16 +44,7 @@ class WaterResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.body = json.dumps(
-            {
-                "água": {
-                    "data": water_intake.date.strftime("%Y-%m-%d"),
-                    "valor": water_intake.milliliters,
-                    "explicação": water_intake.description,
-                    "urina excessiva?": water_intake.pee
-                }
-            }
-        )
+        resp.text = json.dumps(json.loads(str(water_intake)))
         resp.status = falcon.HTTP_OK
 
     def on_post_add(self, req: falcon.Request, resp: falcon.Response):
