@@ -1,12 +1,8 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import ForeignKey, String, Integer, Boolean, DateTime
-from sqlalchemy.orm import (
-    DeclarativeBase,
-    Mapped,
-    mapped_column,
-    relationship,
-)
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
@@ -17,7 +13,9 @@ class Humor(Base):
     __tablename__ = "user_humor"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(DateTime, default=datetime.today().date(), unique=True)
+    date: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.today().date(), unique=True
+    )
     value: Mapped[int] = mapped_column(Integer, default=5)
     description: Mapped[Optional[str]]
     health_based: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -43,7 +41,9 @@ class Water(Base):
     __tablename__ = "user_water_intake"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(DateTime, default=datetime.today().date(), unique=True)
+    date: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.today().date(), unique=True
+    )
     milliliters: Mapped[int]
     description: Mapped[Optional[str]]
     pee: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -69,7 +69,9 @@ class Exercises(Base):
     __tablename__ = "user_exercises"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(DateTime, default=datetime.today().date(), unique=True)
+    date: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.today().date(), unique=True
+    )
     minutes: Mapped[int] = mapped_column(Integer, default=0)
     description: Mapped[Optional[str]]
 
@@ -93,7 +95,9 @@ class Food(Base):
     __tablename__ = "user_food_habits"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(DateTime, default=datetime.today().date(), unique=True)
+    date: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.today().date(), unique=True
+    )
     value: Mapped[int]
     description: Mapped[str] = mapped_column(String(256))
 
@@ -117,7 +121,9 @@ class Mood(Base):
     __tablename__ = "user_mood"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(DateTime, default=datetime.today().date(), unique=True)
+    date: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.today().date(), unique=True
+    )
     humor_id: Mapped[int] = mapped_column(ForeignKey("user_humor.id"))
     water_intake_id: Mapped[int] = mapped_column(ForeignKey("user_water_intake.id"))
     exercises_id: Mapped[int] = mapped_column(ForeignKey("user_exercises.id"))

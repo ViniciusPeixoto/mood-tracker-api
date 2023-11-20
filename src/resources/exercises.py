@@ -1,9 +1,10 @@
 import json
-import falcon
 from datetime import datetime
 
-from src.resources.base import Resource
+import falcon
+
 from src.repository.models import Exercises
+from src.resources.base import Resource
 
 
 class ExercisesResource(Resource):
@@ -17,14 +18,18 @@ class ExercisesResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
 
         if not exercises:
-            resp.body = json.dumps({"error": f"No Exercises data with id {exercises_id}"})
+            resp.body = json.dumps(
+                {"error": f"No Exercises data with id {exercises_id}"}
+            )
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
         resp.text = json.dumps(json.loads(str(exercises)))
         resp.status = falcon.HTTP_OK
 
-    def on_get_date(self, req: falcon.Request, resp: falcon.Response, exercises_date: str):
+    def on_get_date(
+        self, req: falcon.Request, resp: falcon.Response, exercises_date: str
+    ):
         exercises = None
         try:
             exercises_date = datetime.strptime(exercises_date, "%Y-%m-%d").date()
@@ -40,7 +45,9 @@ class ExercisesResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
 
         if not exercises:
-            resp.body = json.dumps({"error": f"No Exercises data in date {exercises_date}"})
+            resp.body = json.dumps(
+                {"error": f"No Exercises data in date {exercises_date}"}
+            )
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
@@ -62,8 +69,7 @@ class ExercisesResource(Resource):
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         exercises = Exercises(
-            minutes=exercises_minutes,
-            description=exercises_description
+            minutes=exercises_minutes, description=exercises_description
         )
         try:
             self.uow.repository.add_exercises(exercises)

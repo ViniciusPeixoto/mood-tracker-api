@@ -1,9 +1,10 @@
 import json
-import falcon
 from datetime import datetime
 
+import falcon
+
+from src.repository.models import Exercises, Food, Humor, Mood, Water
 from src.resources.base import Resource
-from src.repository.models import Mood, Humor, Food, Water, Exercises
 
 
 class MoodResource(Resource):
@@ -58,11 +59,11 @@ class MoodResource(Resource):
             "humor": Humor,
             "water_intake": Water,
             "exercises": Exercises,
-            "food_habits": Food
+            "food_habits": Food,
         }
         mood_params = {
             key: params_classes.get(key)(**body.get(key))
-                for key in ["humor", "water_intake", "exercises", "food_habits"]
+            for key in ["humor", "water_intake", "exercises", "food_habits"]
         }
         try:
             mood = Mood(**mood_params)
@@ -102,7 +103,7 @@ class MoodResource(Resource):
         resp.status = falcon.HTTP_CREATED
 
     def build_mood(self, date: datetime) -> Mood:
-        mood_params = {'date': date}
+        mood_params = {"date": date}
         for param in ["humor", "water_intake", "exercises", "food_habits"]:
             function_name = f"get_{param}_by_date"
             db_function = getattr(self.uow.repository, function_name)

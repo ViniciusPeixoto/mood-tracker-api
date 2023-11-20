@@ -4,9 +4,8 @@ from typing import Any, Callable
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.utils.env import get_db_uri
 from src.repository.database import AbstractRepository, SQLRepository
-
+from src.utils.env import get_db_uri
 
 engine = create_engine(get_db_uri(), echo=True)
 DEFAULT_SESSION_FACTORY = sessionmaker(bind=engine, expire_on_commit=False)

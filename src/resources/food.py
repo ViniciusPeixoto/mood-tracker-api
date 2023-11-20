@@ -1,9 +1,10 @@
 import json
-import falcon
 from datetime import datetime
 
-from src.resources.base import Resource
+import falcon
+
 from src.repository.models import Food
+from src.resources.base import Resource
 
 
 class FoodResource(Resource):
@@ -61,10 +62,7 @@ class FoodResource(Resource):
             resp.body = json.dumps({"error": "Missing Food parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
-        food = Food(
-            value=food_value,
-            description=food_description
-        )
+        food = Food(value=food_value, description=food_description)
         try:
             self.uow.repository.add_food_habits(food)
             self.uow.commit()

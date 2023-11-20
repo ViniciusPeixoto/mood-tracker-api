@@ -1,9 +1,10 @@
 import json
-import falcon
 from datetime import datetime
 
-from src.resources.base import Resource
+import falcon
+
 from src.repository.models import Humor
+from src.resources.base import Resource
 
 
 class HumorResource(Resource):
@@ -65,7 +66,7 @@ class HumorResource(Resource):
         humor = Humor(
             value=humor_value,
             description=humor_description,
-            health_based=humor_health_based == "True"
+            health_based=humor_health_based == "True",
         )
         try:
             self.uow.repository.add_mood(humor)
