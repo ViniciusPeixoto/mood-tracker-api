@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "mood-tracker"
+version = "0.1.0"
+description = "Tracks various lifestryle routines to better evaluate your mood."
+authors = ["Vinicius Peixoto <vinicius.opeixoto@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+black = "23.9.1"
+click = "8.1.7"
+dynaconf = "3.2.3"
+falcon = "3.1.1"
+greenlet = "2.0.2"
+gunicorn = "21.2.0"
+isort = "5.12.0"
+packaging = "23.2"
+pathspec = "0.11.2"
+platformdirs = "3.10.0"
+psycopg2 = "2.9.8"
+sqlalchemy = "2.0.21"
+typing-extensions = "4.8.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
