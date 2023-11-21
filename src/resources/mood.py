@@ -8,7 +8,6 @@ import falcon
 from src.repository.models import Exercises, Food, Humor, Mood, Water
 from src.resources.base import Resource
 
-
 logging.config.fileConfig("src/utils/logging.conf")
 simpleLogger = logging.getLogger("simpleLogger")
 detailedLogger = logging.getLogger("detailedLogger")
@@ -23,7 +22,9 @@ class MoodResource(Resource):
             mood = self.uow.repository.get_mood_by_id(mood_id)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform fetch mood database operation!", exc_info=True)
+            detailedLogger.error(
+                "Could not perform fetch mood database operation!", exc_info=True
+            )
             resp.body = json.dumps({"error": "The server could not fetch the mood."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
 
@@ -45,7 +46,11 @@ class MoodResource(Resource):
             mood_date = datetime.strptime(mood_date, "%Y-%m-%d").date()
         except Exception as e:
             detailedLogger.warning(f"Date {mood_date} is malformed!", exc_info=True)
-            resp.body = json.dumps({"error": f"Date {mood_date} is malformed! Correct format is YYYY-MM-DD."})
+            resp.body = json.dumps(
+                {
+                    "error": f"Date {mood_date} is malformed! Correct format is YYYY-MM-DD."
+                }
+            )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         try:
@@ -53,7 +58,9 @@ class MoodResource(Resource):
             mood = self.uow.repository.get_mood_by_date(mood_date)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform fetch mood database operation!", exc_info=True)
+            detailedLogger.error(
+                "Could not perform fetch mood database operation!", exc_info=True
+            )
             resp.body = json.dumps({"error": "The server could not fetch the mood."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
@@ -101,7 +108,9 @@ class MoodResource(Resource):
             self.uow.repository.add_mood(mood)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform add mood to database operation!", exc_info=True)
+            detailedLogger.error(
+                "Could not perform add mood to database operation!", exc_info=True
+            )
             resp.body = json.dumps({"error": "The server could not add the mood."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
@@ -116,7 +125,11 @@ class MoodResource(Resource):
             mood_date = datetime.strptime(mood_date, "%Y-%m-%d").date()
         except Exception as e:
             detailedLogger.warning(f"Date {mood_date} is malformed!", exc_info=True)
-            resp.body = json.dumps({"error": f"Date {mood_date} is malformed! Correct format is YYYY-MM-DD."})
+            resp.body = json.dumps(
+                {
+                    "error": f"Date {mood_date} is malformed! Correct format is YYYY-MM-DD."
+                }
+            )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
 
@@ -125,7 +138,9 @@ class MoodResource(Resource):
             mood = self.build_mood(date=mood_date)
         except Exception as e:
             detailedLogger.error("Could not build Mood.", exc_info=True)
-            resp.body = json.dumps({"error": "The server could not build a Mood instance."})
+            resp.body = json.dumps(
+                {"error": "The server could not build a Mood instance."}
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
@@ -134,7 +149,10 @@ class MoodResource(Resource):
             self.uow.repository.add_mood(mood)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform add mood from date to database operation!", exc_info=True)
+            detailedLogger.error(
+                "Could not perform add mood from date to database operation!",
+                exc_info=True,
+            )
             resp.body = json.dumps({"error": "The server could not add the mood."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return

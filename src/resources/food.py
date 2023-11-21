@@ -22,8 +22,12 @@ class FoodResource(Resource):
             food = self.uow.repository.get_food_habits_by_id(food_id)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform fetch food habits database operation!", exc_info=True)
-            resp.body = json.dumps({"error": "The server could not fetch the food habit."})
+            detailedLogger.error(
+                "Could not perform fetch food habits database operation!", exc_info=True
+            )
+            resp.body = json.dumps(
+                {"error": "The server could not fetch the food habit."}
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
 
         if not food:
@@ -44,7 +48,11 @@ class FoodResource(Resource):
             food_date = datetime.strptime(food_date, "%Y-%m-%d").date()
         except Exception as e:
             detailedLogger.warning(f"Date {food_date} is malformed!", exc_info=True)
-            resp.body = json.dumps({"error": f"Date {food_date} is malformed! Correct format is YYYY-MM-DD."})
+            resp.body = json.dumps(
+                {
+                    "error": f"Date {food_date} is malformed! Correct format is YYYY-MM-DD."
+                }
+            )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         try:
@@ -52,7 +60,9 @@ class FoodResource(Resource):
             food = self.uow.repository.get_food_habits_by_date(food_date)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform fetch food database operation!", exc_info=True)
+            detailedLogger.error(
+                "Could not perform fetch food database operation!", exc_info=True
+            )
             resp.body = json.dumps({"error": "The server could not fetch the food."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
@@ -90,8 +100,13 @@ class FoodResource(Resource):
             self.uow.repository.add_food_habits(food)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform add food habits to database operation!", exc_info=True)
-            resp.body = json.dumps({"error": "The server could not add the food habit."})
+            detailedLogger.error(
+                "Could not perform add food habits to database operation!",
+                exc_info=True,
+            )
+            resp.body = json.dumps(
+                {"error": "The server could not add the food habit."}
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 

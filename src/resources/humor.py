@@ -8,7 +8,6 @@ import falcon
 from src.repository.models import Humor
 from src.resources.base import Resource
 
-
 logging.config.fileConfig("src/utils/logging.conf")
 simpleLogger = logging.getLogger("simpleLogger")
 detailedLogger = logging.getLogger("detailedLogger")
@@ -23,7 +22,9 @@ class HumorResource(Resource):
             humor = self.uow.repository.get_humor_by_id(humor_id)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform fetch humor database operation!", exc_info=True)
+            detailedLogger.error(
+                "Could not perform fetch humor database operation!", exc_info=True
+            )
             resp.body = json.dumps({"error": "The server could not fetch the humor."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
 
@@ -45,7 +46,11 @@ class HumorResource(Resource):
             humor_date = datetime.strptime(humor_date, "%Y-%m-%d").date()
         except Exception as e:
             detailedLogger.warning(f"Date {humor_date} is malformed!", exc_info=True)
-            resp.body = json.dumps({"error": f"Date {humor_date} is malformed! Correct format is YYYY-MM-DD."})
+            resp.body = json.dumps(
+                {
+                    "error": f"Date {humor_date} is malformed! Correct format is YYYY-MM-DD."
+                }
+            )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         try:
@@ -53,7 +58,9 @@ class HumorResource(Resource):
             humor = self.uow.repository.get_humor_by_date(humor_date)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform fetch humor database operation!", exc_info=True)
+            detailedLogger.error(
+                "Could not perform fetch humor database operation!", exc_info=True
+            )
             resp.body = json.dumps({"error": "The server could not fetch the humor."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
@@ -96,7 +103,9 @@ class HumorResource(Resource):
             self.uow.repository.add_mood(humor)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform add humor to database operation!", exc_info=True)
+            detailedLogger.error(
+                "Could not perform add humor to database operation!", exc_info=True
+            )
             resp.body = json.dumps({"error": "The server could not add the humor."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return

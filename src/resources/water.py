@@ -8,7 +8,6 @@ import falcon
 from src.repository.models import Water
 from src.resources.base import Resource
 
-
 logging.config.fileConfig("src/utils/logging.conf")
 simpleLogger = logging.getLogger("simpleLogger")
 detailedLogger = logging.getLogger("detailedLogger")
@@ -23,13 +22,20 @@ class WaterResource(Resource):
             water_intake = self.uow.repository.get_water_intake_by_id(water_intake_id)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform fetch water intake database operation!", exc_info=True)
-            resp.body = json.dumps({"error": "The server could not fetch the water intake."})
+            detailedLogger.error(
+                "Could not perform fetch water intake database operation!",
+                exc_info=True,
+            )
+            resp.body = json.dumps(
+                {"error": "The server could not fetch the water intake."}
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
 
         if not water_intake:
             simpleLogger.debug(f"No Water data with id {water_intake_id}.")
-            resp.body = json.dumps({"error": f"No Water data with id {water_intake_id}."})
+            resp.body = json.dumps(
+                {"error": f"No Water data with id {water_intake_id}."}
+            )
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
@@ -46,8 +52,14 @@ class WaterResource(Resource):
             simpleLogger.debug("Formatting the date for water intake.")
             water_intake_date = datetime.strptime(water_intake_date, "%Y-%m-%d").date()
         except Exception as e:
-            detailedLogger.warning(f"Date {water_intake_date} is malformed!", exc_info=True)
-            resp.body = json.dumps({"error": f"Date {water_intake_date} is malformed! Correct format is YYYY-MM-DD."})
+            detailedLogger.warning(
+                f"Date {water_intake_date} is malformed!", exc_info=True
+            )
+            resp.body = json.dumps(
+                {
+                    "error": f"Date {water_intake_date} is malformed! Correct format is YYYY-MM-DD."
+                }
+            )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         try:
@@ -57,14 +69,21 @@ class WaterResource(Resource):
             )
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform fetch water intake database operation!", exc_info=True)
-            resp.body = json.dumps({"error": "The server could not fetch the water intake."})
+            detailedLogger.error(
+                "Could not perform fetch water intake database operation!",
+                exc_info=True,
+            )
+            resp.body = json.dumps(
+                {"error": "The server could not fetch the water intake."}
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
         if not water_intake:
             simpleLogger.debug(f"No Water data in date {water_intake_date}.")
-            resp.body = json.dumps({"error": f"No Water data in date {water_intake_date}."})
+            resp.body = json.dumps(
+                {"error": f"No Water data in date {water_intake_date}."}
+            )
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
@@ -100,8 +119,13 @@ class WaterResource(Resource):
             self.uow.repository.add_water_intake(water_intake)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error("Could not perform add water intake to database operation!", exc_info=True)
-            resp.body = json.dumps({"error": "The server could not add the water intake."})
+            detailedLogger.error(
+                "Could not perform add water intake to database operation!",
+                exc_info=True,
+            )
+            resp.body = json.dumps(
+                {"error": "The server could not add the water intake."}
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
