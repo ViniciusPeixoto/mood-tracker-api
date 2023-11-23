@@ -100,7 +100,7 @@ class HumorResource(Resource):
         )
         try:
             simpleLogger.debug("Trying to add Humor data to database.")
-            self.uow.repository.add_mood(humor)
+            self.uow.repository.add_humor(humor)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
