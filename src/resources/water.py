@@ -14,7 +14,36 @@ detailedLogger = logging.getLogger("detailedLogger")
 
 
 class WaterResource(Resource):
+    """
+    Manages Water Intake.
+
+    `GET` /water-intake/{water_intake_id}
+        Retrieves a single water intake's data using its ID
+    `GET` /water-intake/date/{water_intake_date}
+        Retrieves a single water intake's data using its creation date
+    `POST` /water-intake
+        Adds a new water intake entry with:
+            milliliters: volume of water consumed, in ml
+            description: text describing issues for consumption
+            pee: True/False if there was excessive peeing during the day
+    """
+
     def on_get(self, req: falcon.Request, resp: falcon.Response, water_intake_id: int):
+        """
+        Retrieves a single water intake's data using water intake's ID
+
+        `GET` /water-intake/{water_intake_id}
+
+        Args:
+            water_intake_id: the water intake's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `200 OK`: Water intake's data successfully retrieved
+        """
         simpleLogger.info(f"GET /water-intake/{water_intake_id}")
         water_intake = None
         try:
@@ -46,6 +75,23 @@ class WaterResource(Resource):
     def on_get_date(
         self, req: falcon.Request, resp: falcon.Response, water_intake_date: str
     ):
+        """
+        Retrieves a single water intake's data using water intake's creation date
+
+        `GET` /water-intake/date/{water_intake_date}
+
+        Args:
+            water_intake_date: the water intake's creation date
+
+        Responses:
+            `400 Bad Request`: Date could not be parsed
+
+            `404 Not Found`: No data for given date
+
+            `500 Server Error`: Database error
+
+            `200 OK`: Water intake's data successfully retrieved
+        """
         simpleLogger.info(f"GET /water-intake/date/{water_intake_date}")
         water_intake = None
         try:
@@ -92,6 +138,23 @@ class WaterResource(Resource):
         simpleLogger.info(f"GET /water-intake/date/{water_intake_date} : successful")
 
     def on_post_add(self, req: falcon.Request, resp: falcon.Response):
+        """
+        Adds a new water intake
+
+        `POST` /water-intake
+
+        Required Body:
+            `milliliters`: volume of water consumed, in ml
+            `description`: text describing issues for consumption
+            `pee`: True/False if there was excessive peeing during the day
+
+        Responses:
+            `400 Bad Request`: Body data is missing
+
+            `500 Server Error`: Database error
+            
+            `201 CREATED`: Water intake's data successfully added
+        """
         simpleLogger.info("POST /water-intake")
         body = req.stream.read(req.content_length or 0)
         body = json.loads(body.decode("utf-8"))

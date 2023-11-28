@@ -14,7 +14,36 @@ detailedLogger = logging.getLogger("detailedLogger")
 
 
 class HumorResource(Resource):
+    """
+    Manages Humor.
+
+    `GET` /humor/{humor_id}
+        Retrieves a single humor's data using its ID
+    `GET` /humor/date/{humor_date}
+        Retrieves a single humor's data using its creation date
+    `POST` /humor
+        Adds a new humor entry with:
+            value: evaluation of humor
+            description: text describing the given grade
+            health_based: True/False if health issues influenced the given grade
+    """
+
     def on_get(self, req: falcon.Request, resp: falcon.Response, humor_id: int):
+        """
+        Retrieves a single humor's data using humor's ID
+
+        `GET` /humor/{humor_id}
+
+        Args:
+            humor_id: the humor's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `200 OK`: Humor's data successfully retrieved
+        """
         simpleLogger.info(f"GET /humor/{humor_id}")
         humor = None
         try:
@@ -39,6 +68,23 @@ class HumorResource(Resource):
         simpleLogger.info(f"GET /humor/{humor_id} : successful")
 
     def on_get_date(self, req: falcon.Request, resp: falcon.Response, humor_date: str):
+        """
+        Retrieves a single humor's data using humor's creation date
+
+        `GET` /humor/date/{humor_date}
+
+        Args:
+            humor_date: the humor's creation date
+
+        Responses:
+            `400 Bad Request`: Date could not be parsed
+
+            `404 Not Found`: No data for given date
+
+            `500 Server Error`: Database error
+
+            `200 OK`: Humor's data successfully retrieved
+        """
         simpleLogger.info(f"GET /humor/date/{humor_date}")
         humor = None
         try:
@@ -76,6 +122,23 @@ class HumorResource(Resource):
         simpleLogger.info(f"GET /humor/date/{humor_date} : successful")
 
     def on_post_add(self, req: falcon.Request, resp: falcon.Response):
+        """
+        Adds a new humor
+
+        `POST` /humor
+
+        Required Body:
+            `value`: evaluation of humor
+            `description`: text describing the given grade
+            `health_based`: True/False if health issues influenced the given grade
+
+        Responses:
+            `400 Bad Request`: Body data is missing
+
+            `500 Server Error`: Database error
+            
+            `201 CREATED`: Humor's data successfully added
+        """
         simpleLogger.info("POST /humor")
         body = req.stream.read(req.content_length or 0)
         body = json.loads(body.decode("utf-8"))
