@@ -14,7 +14,35 @@ detailedLogger = logging.getLogger("detailedLogger")
 
 
 class ExercisesResource(Resource):
+    """
+    Manages Exercises.
+
+    `GET` /exercises/{exercises_id}
+        Retrieves a single exercise's data using its ID
+    `GET` /exercises/date/{exercises_date}
+        Retrieves a single exercise's data using its creation date
+    `POST` /exercises
+        Adds a new exercise entry with:
+            minutes: duration of exercise
+            description: text describing the activity
+    """
+
     def on_get(self, req: falcon.Request, resp: falcon.Response, exercises_id: int):
+        """
+        Retrieves a single exercise's data using exercise's ID
+
+        `GET` /exercises/{exercises_id}
+
+        Args:
+            exercises_id: the exercise's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `200 OK`: Exercise's data successfully retrieved
+        """
         simpleLogger.info(f"GET /exercises/{exercises_id}")
         exercises = None
         try:
@@ -45,6 +73,23 @@ class ExercisesResource(Resource):
     def on_get_date(
         self, req: falcon.Request, resp: falcon.Response, exercises_date: str
     ):
+        """
+        Retrieves a single exercise's data using exercise's creation date
+
+        `GET` /exercises/date/{exercises_date}
+
+        Args:
+            exercises_date: the exercise's creation date
+
+        Responses:
+            `400 Bad Request`: Date could not be parsed
+
+            `404 Not Found`: No data for given date
+
+            `500 Server Error`: Database error
+
+            `200 OK`: Exercise's data successfully retrieved
+        """
         simpleLogger.info(f"GET /exercises/date/{exercises_date}")
         exercises = None
         try:
@@ -88,6 +133,22 @@ class ExercisesResource(Resource):
         simpleLogger.info(f"GET /exercises/date/{exercises_date} : successful")
 
     def on_post_add(self, req: falcon.Request, resp: falcon.Response):
+        """
+        Adds a new exercise
+
+        `POST` /exercises
+
+        Required Body:
+            `minutes`: duration of exercise
+            `description`: text describing the activity
+
+        Responses:
+            `400 Bad Request`: Body data is missing
+
+            `500 Server Error`: Database error
+            
+            `201 CREATED`: Exercise's data successfully added
+        """
         simpleLogger.info("POST /exercises")
         body = req.stream.read(req.content_length or 0)
         body = json.loads(body.decode("utf-8"))

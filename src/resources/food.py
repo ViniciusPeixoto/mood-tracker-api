@@ -14,7 +14,35 @@ detailedLogger = logging.getLogger("detailedLogger")
 
 
 class FoodResource(Resource):
+    """
+    Manages Food Habits.
+
+    `GET` /food/{food_id}
+        Retrieves a single food habit's data using its ID
+    `GET` /food/date/{food_date}
+        Retrieves a single food habit's data using its creation date
+    `POST` /food
+        Adds a new food habit entry with:
+            value: evaluation of food habit
+            description: text describing the given grade
+    """
+
     def on_get(self, req: falcon.Request, resp: falcon.Response, food_id: int):
+        """
+        Retrieves a single food habit's data using food habit's ID
+
+        `GET` /food/{food_id}
+
+        Args:
+            food_id: the food habit's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `200 OK`: Food habit's data successfully retrieved
+        """
         simpleLogger.info(f"GET /food/{food_id}")
         food = None
         try:
@@ -41,6 +69,23 @@ class FoodResource(Resource):
         simpleLogger.info(f"GET /food/{food_id} : successful")
 
     def on_get_date(self, req: falcon.Request, resp: falcon.Response, food_date: str):
+        """
+        Retrieves a single food habit's data using food habit's creation date
+
+        `GET` /food/date/{food_date}
+
+        Args:
+            food_date: the food habit's creation date
+
+        Responses:
+            `400 Bad Request`: Date could not be parsed
+
+            `404 Not Found`: No data for given date
+
+            `500 Server Error`: Database error
+
+            `200 OK`: Food habit's data successfully retrieved
+        """
         simpleLogger.info(f"GET /food/date/{food_date}")
         food = None
         try:
@@ -78,6 +123,22 @@ class FoodResource(Resource):
         simpleLogger.info(f"GET /food/date/{food_date} : successful")
 
     def on_post_add(self, req: falcon.Request, resp: falcon.Response):
+        """
+        Adds a new food habit
+
+        `POST` /food
+
+        Required Body:
+            `value`: evaluation of food habit
+            `description`: text describing the given grade
+
+        Responses:
+            `400 Bad Request`: Body data is missing
+
+            `500 Server Error`: Database error
+            
+            `201 CREATED`: Food habit's data successfully added
+        """
         simpleLogger.info("POST /food")
         body = req.stream.read(req.content_length or 0)
         body = json.loads(body.decode("utf-8"))

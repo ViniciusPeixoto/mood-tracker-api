@@ -14,7 +14,39 @@ detailedLogger = logging.getLogger("detailedLogger")
 
 
 class MoodResource(Resource):
+    """
+    Manages Mood.
+
+    `GET` /mood/{mood_id}
+        Retrieves a single mood's data using its ID
+    `GET` /mood/date/{mood_date}
+        Retrieves a single mood's data using its creation date
+    `POST` /mood
+        Adds a new mood entry with:
+            exercises: data for exercises entry
+            food_habits: data for food habits entry
+            humor: data for humor entry
+            water_intake: data for water intake entry
+    `POST` /mood/date/{mood_date}
+        Adds a new mood entry for a given date using pre-existing data for the date
+    """
+
     def on_get(self, req: falcon.Request, resp: falcon.Response, mood_id: int):
+        """
+        Retrieves a single mood's data using mood's ID
+
+        `GET` /mood/{mood_id}
+
+        Args:
+            mood_id: the mood's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `200 OK`: Mood's data successfully retrieved
+        """
         simpleLogger.info(f"GET /mood/{mood_id}")
         mood = None
         try:
@@ -39,6 +71,23 @@ class MoodResource(Resource):
         simpleLogger.info(f"GET /mood/{mood_id} : successful")
 
     def on_get_date(self, req: falcon.Request, resp: falcon.Response, mood_date: str):
+        """
+        Retrieves a single mood's data using mood's creation date
+
+        `GET` /mood/date/{mood_date}
+
+        Args:
+            mood_date: the mood's creation date
+
+        Responses:
+            `400 Bad Request`: Date could not be parsed
+
+            `404 Not Found`: No data for given date
+
+            `500 Server Error`: Database error
+
+            `200 OK`: mood's data successfully retrieved
+        """
         simpleLogger.info(f"GET /mood/date/{mood_date}")
         mood = None
         try:
@@ -76,6 +125,24 @@ class MoodResource(Resource):
         simpleLogger.info(f"GET /mood/date/{mood_date} : successful")
 
     def on_post(self, req: falcon.Request, resp: falcon.Response):
+        """
+        Adds a new mood
+
+        `POST` /mood
+
+        Required Body:
+            `minutes`: duration of exercise
+            `description`: text describing the activity
+
+        Responses:
+            `400 Bad Request`: Body data is missing
+
+            `500 Server Error`: The server could not create a Mood instance
+
+            `500 Server Error`: Database error
+            
+            `201 CREATED`: Mood's data successfully added
+        """
         simpleLogger.info("POST /mood")
         body = req.stream.read(req.content_length or 0)
         body = json.loads(body.decode("utf-8"))
@@ -119,6 +186,23 @@ class MoodResource(Resource):
         simpleLogger.info("POST /mood : successful")
 
     def on_post_date(self, req: falcon.Request, resp: falcon.Response, mood_date: str):
+        """
+        Adds a new mood entry for a given date using pre-existing data for the date.
+        
+        `POST` /mood/date/{mood_date}
+
+        Args:
+            mood_date: teh date to fetch data and save Mood
+
+        Responses:
+            `400 Bad Request`: Date could not be parsed
+
+            `500 Server Error`: The server could not create a Mood instance
+
+            `500 Server Error`: Database error
+            
+            `201 CREATED`: Mood's data successfully added
+        """
         simpleLogger.info(f"POST /mood/date/{mood_date}")
         try:
             simpleLogger.debug("Formatting the date for post mood.")
@@ -161,6 +245,16 @@ class MoodResource(Resource):
         simpleLogger.info(f"POST /mood/date/{mood_date}")
 
     def build_mood(self, date: datetime) -> Mood:
+        """
+        Creates a Mood instance for a given `date` by retrieving data from all parameters
+        for this date.
+
+        Args:
+            date: the date to fetch data and create Mood instance
+
+        Returns:
+            a Mood instance.
+        """
         simpleLogger.info(f"Building Mood with data from {date}")
         mood_params = {"date": date}
         for param in ["humor", "water_intake", "exercises", "food_habits"]:
