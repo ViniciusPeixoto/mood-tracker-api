@@ -157,7 +157,11 @@ class HumorResource(Resource):
             humor = Humor(**body)
         except Exception as e:
             detailedLogger.error("Could not create a Humor instance!", exc_info=True)
-            resp.text = json.dumps({"error": "The server could not create a Humor with the parameters provided."})
+            resp.text = json.dumps(
+                {
+                    "error": "The server could not create a Humor with the parameters provided."
+                }
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
         try:

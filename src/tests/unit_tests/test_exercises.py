@@ -19,7 +19,7 @@ def test_bare_get(client, exercise_id, status_code):
         (str(date.today()), 200),
         ("1111-11-11", 404),
         ("11-11-1111", 400),
-    ]
+    ],
 )
 def test_get_from_date(client, exercise_date, status_code):
     result = client.simulate_get(f"/exercises/date/{exercise_date}")
@@ -31,34 +31,27 @@ def test_get_from_date(client, exercise_date, status_code):
     "body, status_code",
     [
         (
-            {
-              "date": "2009-12-21",
-              "minutes": 15,
-              "description": "running in the park"
-            },
-            201
+            {"date": "2009-12-21", "minutes": 15, "description": "running in the park"},
+            201,
         ),
         (
             {
-              "date": "2009-12-21",
-              "minutes": 15,
+                "date": "2009-12-21",
+                "minutes": 15,
             },
-            400
+            400,
         ),
-        (
-            {},
-            400
-        ),
+        ({}, 400),
         (
             {
-              "date": "2009-12-21",
-              "minutes": 15,
-              "description": "running in the park",
-              "extra": "this should break"
+                "date": "2009-12-21",
+                "minutes": 15,
+                "description": "running in the park",
+                "extra": "this should break",
             },
-            500
-        )
-    ]
+            500,
+        ),
+    ],
 )
 def test_post(client, body, status_code, session_factory):
     result = client.simulate_post(f"/exercises", json=body)
@@ -67,6 +60,5 @@ def test_post(client, body, status_code, session_factory):
 
     if result.status_code < 400:
         with session_factory() as session:
-            query = select(Exercises).where(Exercises.date=="2009-12-21").fetch(1)
+            query = select(Exercises).where(Exercises.date == "2009-12-21").fetch(1)
             assert session.scalar(query)
-

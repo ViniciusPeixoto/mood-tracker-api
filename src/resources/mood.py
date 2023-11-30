@@ -156,7 +156,9 @@ class MoodResource(Resource):
         allowed_params = ["date", "humor", "water_intake", "exercises", "food_habits"]
         if set(body.keys()).difference(allowed_params):
             simpleLogger.debug("Incorrect parameters in request body for mood.")
-            resp.text = json.dumps({"error": "Incorrect parameters in request body for mood."})
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
 
@@ -185,7 +187,11 @@ class MoodResource(Resource):
             mood_params["mood"] = mood
         except TypeError as e:
             detailedLogger.error("Could not create a Mood instance!", exc_info=True)
-            resp.text = json.dumps({"error": "The server could not create a Mood with the parameters provided."})
+            resp.text = json.dumps(
+                {
+                    "error": "The server could not create a Mood with the parameters provided."
+                }
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
@@ -253,7 +259,9 @@ class MoodResource(Resource):
             simpleLogger.debug("Building a Mood instance from multiple dates.")
             mood = self.build_mood(date=mood_date)
         except ValueError as e:
-            detailedLogger.warning(f"Date {mood_date} does not contain data!", exc_info=True)
+            detailedLogger.warning(
+                f"Date {mood_date} does not contain data!", exc_info=True
+            )
             resp.text = json.dumps({"error": e.__str__()})
             resp.status = falcon.HTTP_NOT_FOUND
             return
@@ -304,6 +312,8 @@ class MoodResource(Resource):
             mood_params[param] = param_instance
 
         if empty_params:
-            raise ValueError(f"Date {date} does not contain data for params {empty_params}.")
+            raise ValueError(
+                f"Date {date} does not contain data for params {empty_params}."
+            )
 
         return Mood(**mood_params)

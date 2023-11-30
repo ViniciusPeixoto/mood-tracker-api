@@ -157,7 +157,11 @@ class FoodResource(Resource):
             food = Food(**body)
         except Exception as e:
             detailedLogger.error("Could not create a Food instance!", exc_info=True)
-            resp.text = json.dumps({"error": "The server could not create a Food with the parameters provided."})
+            resp.text = json.dumps(
+                {
+                    "error": "The server could not create a Food with the parameters provided."
+                }
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
         try:
