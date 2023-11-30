@@ -163,20 +163,34 @@ class WaterResource(Resource):
             resp.text = json.dumps({"error": "Missing request body for water intake."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
-        water_intake_ml = body.get("milliliters")
-        water_intake_description = body.get("description")
-        water_intake_pee = body.get("pee")
 
-        if not all((water_intake_ml, water_intake_description, water_intake_pee)):
+        allowed_params = ["date", "milliliters", "description", "pee"]
+        if set(body.keys()).difference(allowed_params):
+            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        if not all(key in body for key in ["milliliters", "description", "pee"]):
             simpleLogger.debug("Missing Water parameter.")
             resp.text = json.dumps({"error": "Missing Water parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
-        water_intake = Water(
-            milliliters=water_intake_ml,
-            description=water_intake_description,
-            pee=water_intake_pee == "True",
-        )
+        try:
+            water_intake = Water(**body)
+        except Exception as e:
+            detailedLogger.error(
+                "Could not create a Water Intake instance!", exc_info=True
+            )
+            resp.text = json.dumps(
+                {
+                    "error": "The server could not create a Water Intake with the parameters provided."
+                }
+            )
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
         try:
             simpleLogger.debug("Trying to add Water data to database.")
             self.uow.repository.add_water_intake(water_intake)

@@ -3,8 +3,7 @@ import logging.config
 
 import falcon
 
-from src.repository.unit_of_work import (AbstractUnitOfWork,
-                                         SQLAlchemyUnitOfWork)
+from src.repository.unit_of_work import AbstractUnitOfWork, SQLAlchemyUnitOfWork
 from src.resources.exercises import ExercisesResource
 from src.resources.food import FoodResource
 from src.resources.humor import HumorResource

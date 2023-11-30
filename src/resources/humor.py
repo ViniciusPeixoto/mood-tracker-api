@@ -147,20 +147,32 @@ class HumorResource(Resource):
             resp.text = json.dumps({"error": "Missing request body for humor."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
-        humor_value = body.get("value")
-        humor_description = body.get("description")
-        humor_health_based = body.get("health_based")
 
-        if not all((humor_value, humor_description, humor_health_based)):
+        allowed_params = ["date", "value", "description", "health_based"]
+        if set(body.keys()).difference(allowed_params):
+            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        if not all(key in body for key in ["value", "description", "health_based"]):
             simpleLogger.debug("Missing Humor parameter.")
             resp.text = json.dumps({"error": "Missing Humor parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
-        humor = Humor(
-            value=humor_value,
-            description=humor_description,
-            health_based=humor_health_based == "True",
-        )
+        try:
+            humor = Humor(**body)
+        except Exception as e:
+            detailedLogger.error("Could not create a Humor instance!", exc_info=True)
+            resp.text = json.dumps(
+                {
+                    "error": "The server could not create a Humor with the parameters provided."
+                }
+            )
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
         try:
             simpleLogger.debug("Trying to add Humor data to database.")
             self.uow.repository.add_humor(humor)

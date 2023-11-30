@@ -152,23 +152,46 @@ class MoodResource(Resource):
             resp.text = json.dumps({"error": "Missing request body for mood."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
+        allowed_params = ["date", "humor", "water_intake", "exercises", "food_habits"]
+        if set(body.keys()).difference(allowed_params):
+            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
         params_classes = {
             "humor": Humor,
             "water_intake": Water,
             "exercises": Exercises,
             "food_habits": Food,
         }
-        mood_params = {
-            key: params_classes.get(key)(**body.get(key))
-            for key in ["humor", "water_intake", "exercises", "food_habits"]
-        }
+        try:
+            mood_params = {
+                key: params_classes.get(key)(**body.get(key))
+                for key in ["humor", "water_intake", "exercises", "food_habits"]
+            }
+        except TypeError as e:
+            detailedLogger.warning("Missing Mood parameter.")
+            resp.text = json.dumps({"error": "Missing Mood parameter."})
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+        if body.get("date"):
+            mood_params["date"] = body.get("date")
+
         try:
             simpleLogger.debug("Trying to create a Mood instance.")
             mood = Mood(**mood_params)
             mood_params["mood"] = mood
         except TypeError as e:
             detailedLogger.error("Could not create a Mood instance!", exc_info=True)
-            resp.text = json.dumps({"error": "The server could not create a Mood."})
+            resp.text = json.dumps(
+                {
+                    "error": "The server could not create a Mood with the parameters provided."
+                }
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
@@ -235,6 +258,13 @@ class MoodResource(Resource):
         try:
             simpleLogger.debug("Building a Mood instance from multiple dates.")
             mood = self.build_mood(date=mood_date)
+        except ValueError as e:
+            detailedLogger.warning(
+                f"Date {mood_date} does not contain data!", exc_info=True
+            )
+            resp.text = json.dumps({"error": e.__str__()})
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
         except Exception as e:
             detailedLogger.error("Could not build Mood.", exc_info=True)
             resp.text = json.dumps(
@@ -272,9 +302,18 @@ class MoodResource(Resource):
         """
         simpleLogger.info(f"Building Mood with data from {date}")
         mood_params = {"date": date}
+        empty_params = []
         for param in ["humor", "water_intake", "exercises", "food_habits"]:
             function_name = f"get_{param}_by_date"
             db_function = getattr(self.uow.repository, function_name)
-            mood_params[param] = db_function(date)
+            param_instance = db_function(date)
+            if param_instance is None:
+                empty_params.append(param)
+            mood_params[param] = param_instance
+
+        if empty_params:
+            raise ValueError(
+                f"Date {date} does not contain data for params {empty_params}."
+            )
 
         return Mood(**mood_params)

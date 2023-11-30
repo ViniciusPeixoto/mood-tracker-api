@@ -157,17 +157,32 @@ class ExercisesResource(Resource):
             resp.text = json.dumps({"error": "Missing request body."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
-        exercises_minutes = body.get("minutes")
-        exercises_description = body.get("description")
 
-        if not all((exercises_minutes, exercises_description)):
+        allowed_params = ["date", "minutes", "description"]
+        if set(body.keys()).difference(allowed_params):
+            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        if not all(key in body for key in ["minutes", "description"]):
             simpleLogger.debug("Missing Exercises parameter.")
             resp.text = json.dumps({"error": "Missing Exercises parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
-        exercises = Exercises(
-            minutes=exercises_minutes, description=exercises_description
-        )
+        try:
+            exercises = Exercises(**body)
+        except Exception as e:
+            detailedLogger.error("Could not create a Exercise instance!", exc_info=True)
+            resp.text = json.dumps(
+                {
+                    "error": "The server could not create an Exercise with the parameters provided."
+                }
+            )
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
         try:
             simpleLogger.debug("Trying to add Exercises data to database.")
             self.uow.repository.add_exercises(exercises)
