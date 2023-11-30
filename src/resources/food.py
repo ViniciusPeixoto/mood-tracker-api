@@ -147,15 +147,19 @@ class FoodResource(Resource):
             resp.text = json.dumps({"error": "Missing request body for food habits."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
-        food_value = body.get("value")
-        food_description = body.get("description")
 
-        if not all((food_value, food_description)):
+        if not all(key in body for key in ["value", "description"]):
             simpleLogger.debug("Missing Food parameter.")
             resp.text = json.dumps({"error": "Missing Food parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
-        food = Food(value=food_value, description=food_description)
+        try:
+            food = Food(**body)
+        except Exception as e:
+            detailedLogger.error("Could not create a Food instance!", exc_info=True)
+            resp.text = json.dumps({"error": "The server could not create a Food with the parameters provided."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
         try:
             simpleLogger.debug("Trying to add Food data to database.")
             self.uow.repository.add_food_habits(food)

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -14,7 +14,7 @@ class Humor(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.today().date(), unique=True
+        Date, default=datetime.today().date(), unique=True
     )
     value: Mapped[int] = mapped_column(Integer, default=5)
     description: Mapped[Optional[str]]
@@ -42,7 +42,7 @@ class Water(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.today().date(), unique=True
+        Date, default=datetime.today().date(), unique=True
     )
     milliliters: Mapped[int]
     description: Mapped[Optional[str]]
@@ -70,7 +70,7 @@ class Exercises(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.today().date(), unique=True
+        Date, default=datetime.today().date(), unique=True
     )
     minutes: Mapped[int] = mapped_column(Integer, default=0)
     description: Mapped[Optional[str]]
@@ -96,7 +96,7 @@ class Food(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.today().date(), unique=True
+        Date, default=datetime.today().date(), unique=True
     )
     value: Mapped[int]
     description: Mapped[str] = mapped_column(String(256))
@@ -122,7 +122,7 @@ class Mood(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.today().date(), unique=True
+        Date, default=datetime.today().date(), unique=True
     )
     humor_id: Mapped[int] = mapped_column(ForeignKey("user_humor.id"))
     water_intake_id: Mapped[int] = mapped_column(ForeignKey("user_water_intake.id"))
