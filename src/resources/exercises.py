@@ -53,14 +53,14 @@ class ExercisesResource(Resource):
             detailedLogger.error(
                 "Could not perform fetch exercises database operation!", exc_info=True
             )
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": "The server could not fetch the exercise."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
 
         if not exercises:
             simpleLogger.debug(f"No Exercises data with id {exercises_id}.")
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": f"No Exercises data with id {exercises_id}."}
             )
             resp.status = falcon.HTTP_NOT_FOUND
@@ -99,7 +99,7 @@ class ExercisesResource(Resource):
             detailedLogger.warning(
                 f"Date {exercises_date} is malformed!", exc_info=True
             )
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {
                     "error": f"Date {exercises_date} is malformed! Correct format is YYYY-MM-DD."
                 }
@@ -114,7 +114,7 @@ class ExercisesResource(Resource):
             detailedLogger.error(
                 "Could not perform fetch exercises database operation!", exc_info=True
             )
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": "The server could not fetch the exercise."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
@@ -122,7 +122,7 @@ class ExercisesResource(Resource):
 
         if not exercises:
             simpleLogger.debug(f"No Exercises data in date {exercises_date}.")
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": f"No Exercises data in date {exercises_date}."}
             )
             resp.status = falcon.HTTP_NOT_FOUND
@@ -146,7 +146,7 @@ class ExercisesResource(Resource):
             `400 Bad Request`: Body data is missing
 
             `500 Server Error`: Database error
-            
+
             `201 CREATED`: Exercise's data successfully added
         """
         simpleLogger.info("POST /exercises")
@@ -154,7 +154,7 @@ class ExercisesResource(Resource):
         body = json.loads(body.decode("utf-8"))
         if not body:
             simpleLogger.debug("Missing request body.")
-            resp.body = json.dumps({"error": "Missing request body."})
+            resp.text = json.dumps({"error": "Missing request body."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         exercises_minutes = body.get("minutes")
@@ -162,7 +162,7 @@ class ExercisesResource(Resource):
 
         if not all((exercises_minutes, exercises_description)):
             simpleLogger.debug("Missing Exercises parameter.")
-            resp.body = json.dumps({"error": "Missing Exercises parameter."})
+            resp.text = json.dumps({"error": "Missing Exercises parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         exercises = Exercises(
@@ -176,7 +176,7 @@ class ExercisesResource(Resource):
             detailedLogger.error(
                 "Could not perform add exercises to database operation!", exc_info=True
             )
-            resp.body = json.dumps({"error": "The server could not add the exercise."})
+            resp.text = json.dumps({"error": "The server could not add the exercise."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 

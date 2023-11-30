@@ -1,6 +1,7 @@
 import json
 import logging
 import logging.config
+from collections import namedtuple
 from datetime import datetime
 
 import falcon
@@ -57,12 +58,12 @@ class MoodResource(Resource):
             detailedLogger.error(
                 "Could not perform fetch mood database operation!", exc_info=True
             )
-            resp.body = json.dumps({"error": "The server could not fetch the mood."})
+            resp.text = json.dumps({"error": "The server could not fetch the mood."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
 
         if not mood:
             simpleLogger.debug(f"No Mood data with id {mood_id}.")
-            resp.body = json.dumps({"error": f"No Mood data with id {mood_id}."})
+            resp.text = json.dumps({"error": f"No Mood data with id {mood_id}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
@@ -95,7 +96,7 @@ class MoodResource(Resource):
             mood_date = datetime.strptime(mood_date, "%Y-%m-%d").date()
         except Exception as e:
             detailedLogger.warning(f"Date {mood_date} is malformed!", exc_info=True)
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {
                     "error": f"Date {mood_date} is malformed! Correct format is YYYY-MM-DD."
                 }
@@ -110,13 +111,13 @@ class MoodResource(Resource):
             detailedLogger.error(
                 "Could not perform fetch mood database operation!", exc_info=True
             )
-            resp.body = json.dumps({"error": "The server could not fetch the mood."})
+            resp.text = json.dumps({"error": "The server could not fetch the mood."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
         if not mood:
             simpleLogger.debug(f"No Mood data in date {mood_date}.")
-            resp.body = json.dumps({"error": f"No Mood data in date {mood_date}."})
+            resp.text = json.dumps({"error": f"No Mood data in date {mood_date}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
@@ -140,7 +141,7 @@ class MoodResource(Resource):
             `500 Server Error`: The server could not create a Mood instance
 
             `500 Server Error`: Database error
-            
+
             `201 CREATED`: Mood's data successfully added
         """
         simpleLogger.info("POST /mood")
@@ -148,7 +149,7 @@ class MoodResource(Resource):
         body = json.loads(body.decode("utf-8"))
         if not body:
             simpleLogger.debug("Missing request body for mood.")
-            resp.body = json.dumps({"error": "Missing request body for mood."})
+            resp.text = json.dumps({"error": "Missing request body for mood."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         params_classes = {
@@ -164,23 +165,37 @@ class MoodResource(Resource):
         try:
             simpleLogger.debug("Trying to create a Mood instance.")
             mood = Mood(**mood_params)
+            mood_params["mood"] = mood
         except TypeError as e:
             detailedLogger.error("Could not create a Mood instance!", exc_info=True)
-            resp.body = json.dumps({"error": "The server could not create a Mood."})
+            resp.text = json.dumps({"error": "The server could not create a Mood."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        try:
-            simpleLogger.debug("Trying to add Mood data to database.")
-            self.uow.repository.add_mood(mood)
-            self.uow.commit()
-        except Exception as e:
-            detailedLogger.error(
-                "Could not perform add mood to database operation!", exc_info=True
-            )
-            resp.body = json.dumps({"error": "The server could not add the mood."})
-            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
-            return
+        params_db_functions = {
+            "humor": self.uow.repository.add_humor,
+            "water_intake": self.uow.repository.add_water_intake,
+            "exercises": self.uow.repository.add_exercises,
+            "food_habits": self.uow.repository.add_food_habits,
+            "mood": self.uow.repository.add_mood,
+        }
+        for key in ["humor", "water_intake", "exercises", "food_habits", "mood"]:
+            try:
+                simpleLogger.debug(
+                    f"Trying to add {key.title().replace('_', ' ')} data to database."
+                )
+                params_db_functions[key](mood_params[key])
+                self.uow.commit()
+            except Exception as e:
+                detailedLogger.error(
+                    f"Could not perform add {key.title().replace('_', ' ')} to database operation!",
+                    exc_info=True,
+                )
+                resp.text = json.dumps(
+                    {"error": f"The server could not add the {key.replace('_', ' ')}."}
+                )
+                resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+                return
 
         resp.status = falcon.HTTP_CREATED
         simpleLogger.info("POST /mood : successful")
@@ -188,7 +203,7 @@ class MoodResource(Resource):
     def on_post_date(self, req: falcon.Request, resp: falcon.Response, mood_date: str):
         """
         Adds a new mood entry for a given date using pre-existing data for the date.
-        
+
         `POST` /mood/date/{mood_date}
 
         Args:
@@ -200,7 +215,7 @@ class MoodResource(Resource):
             `500 Server Error`: The server could not create a Mood instance
 
             `500 Server Error`: Database error
-            
+
             `201 CREATED`: Mood's data successfully added
         """
         simpleLogger.info(f"POST /mood/date/{mood_date}")
@@ -209,7 +224,7 @@ class MoodResource(Resource):
             mood_date = datetime.strptime(mood_date, "%Y-%m-%d").date()
         except Exception as e:
             detailedLogger.warning(f"Date {mood_date} is malformed!", exc_info=True)
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {
                     "error": f"Date {mood_date} is malformed! Correct format is YYYY-MM-DD."
                 }
@@ -222,7 +237,7 @@ class MoodResource(Resource):
             mood = self.build_mood(date=mood_date)
         except Exception as e:
             detailedLogger.error("Could not build Mood.", exc_info=True)
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": "The server could not build a Mood instance."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
@@ -237,7 +252,7 @@ class MoodResource(Resource):
                 "Could not perform add mood from date to database operation!",
                 exc_info=True,
             )
-            resp.body = json.dumps({"error": "The server could not add the mood."})
+            resp.text = json.dumps({"error": "The server could not add the mood."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
