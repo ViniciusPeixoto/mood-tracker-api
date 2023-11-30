@@ -55,14 +55,14 @@ class WaterResource(Resource):
                 "Could not perform fetch water intake database operation!",
                 exc_info=True,
             )
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": "The server could not fetch the water intake."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
 
         if not water_intake:
             simpleLogger.debug(f"No Water data with id {water_intake_id}.")
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": f"No Water data with id {water_intake_id}."}
             )
             resp.status = falcon.HTTP_NOT_FOUND
@@ -101,7 +101,7 @@ class WaterResource(Resource):
             detailedLogger.warning(
                 f"Date {water_intake_date} is malformed!", exc_info=True
             )
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {
                     "error": f"Date {water_intake_date} is malformed! Correct format is YYYY-MM-DD."
                 }
@@ -119,7 +119,7 @@ class WaterResource(Resource):
                 "Could not perform fetch water intake database operation!",
                 exc_info=True,
             )
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": "The server could not fetch the water intake."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
@@ -127,7 +127,7 @@ class WaterResource(Resource):
 
         if not water_intake:
             simpleLogger.debug(f"No Water data in date {water_intake_date}.")
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": f"No Water data in date {water_intake_date}."}
             )
             resp.status = falcon.HTTP_NOT_FOUND
@@ -160,7 +160,7 @@ class WaterResource(Resource):
         body = json.loads(body.decode("utf-8"))
         if not body:
             simpleLogger.debug("Missing request body for water intake.")
-            resp.body = json.dumps({"error": "Missing request body for water intake."})
+            resp.text = json.dumps({"error": "Missing request body for water intake."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         water_intake_ml = body.get("milliliters")
@@ -169,7 +169,7 @@ class WaterResource(Resource):
 
         if not all((water_intake_ml, water_intake_description, water_intake_pee)):
             simpleLogger.debug("Missing Water parameter.")
-            resp.body = json.dumps({"error": "Missing Water parameter."})
+            resp.text = json.dumps({"error": "Missing Water parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         water_intake = Water(
@@ -186,7 +186,7 @@ class WaterResource(Resource):
                 "Could not perform add water intake to database operation!",
                 exc_info=True,
             )
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": "The server could not add the water intake."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR

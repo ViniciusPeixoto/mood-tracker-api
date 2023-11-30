@@ -14,8 +14,10 @@ from src.resources.water import WaterResource
 logging.config.fileConfig("src/utils/logging.conf")
 simpleLogger = logging.getLogger("simpleLogger")
 
+uow = SQLAlchemyUnitOfWork()
 
-def load_routes(app: falcon.App, uow: AbstractUnitOfWork):
+
+def load_routes(app: falcon.App, uow: AbstractUnitOfWork) -> None:
     simpleLogger.info("Starting loading routes.")
     with uow:
         app.add_route("/humor", HumorResource(uow), suffix="add")
@@ -44,13 +46,12 @@ def load_routes(app: falcon.App, uow: AbstractUnitOfWork):
     simpleLogger.info("Routes added.")
 
 
-def run():
+def run(uow: AbstractUnitOfWork) -> falcon.App:
     simpleLogger.info("Starting the application.")
-    uow = SQLAlchemyUnitOfWork()
     app = falcon.App()
     load_routes(app, uow)
 
     return app
 
 
-app = application = run()
+app = application = run(uow=uow)

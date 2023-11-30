@@ -54,12 +54,12 @@ class HumorResource(Resource):
             detailedLogger.error(
                 "Could not perform fetch humor database operation!", exc_info=True
             )
-            resp.body = json.dumps({"error": "The server could not fetch the humor."})
+            resp.text = json.dumps({"error": "The server could not fetch the humor."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
 
         if not humor:
             simpleLogger.debug(f"No Humor data with id {humor_id}.")
-            resp.body = json.dumps({"error": f"No Humor data with id {humor_id}."})
+            resp.text = json.dumps({"error": f"No Humor data with id {humor_id}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
@@ -92,7 +92,7 @@ class HumorResource(Resource):
             humor_date = datetime.strptime(humor_date, "%Y-%m-%d").date()
         except Exception as e:
             detailedLogger.warning(f"Date {humor_date} is malformed!", exc_info=True)
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {
                     "error": f"Date {humor_date} is malformed! Correct format is YYYY-MM-DD."
                 }
@@ -107,13 +107,13 @@ class HumorResource(Resource):
             detailedLogger.error(
                 "Could not perform fetch humor database operation!", exc_info=True
             )
-            resp.body = json.dumps({"error": "The server could not fetch the humor."})
+            resp.text = json.dumps({"error": "The server could not fetch the humor."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
         if not humor:
             simpleLogger.debug(f"No Humor data in date {humor_date}.")
-            resp.body = json.dumps({"error": f"No Humor data in date {humor_date}."})
+            resp.text = json.dumps({"error": f"No Humor data in date {humor_date}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
@@ -144,7 +144,7 @@ class HumorResource(Resource):
         body = json.loads(body.decode("utf-8"))
         if not body:
             simpleLogger.debug("Missing request body for humor.")
-            resp.body = json.dumps({"error": "Missing request body for humor."})
+            resp.text = json.dumps({"error": "Missing request body for humor."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         humor_value = body.get("value")
@@ -153,7 +153,7 @@ class HumorResource(Resource):
 
         if not all((humor_value, humor_description, humor_health_based)):
             simpleLogger.debug("Missing Humor parameter.")
-            resp.body = json.dumps({"error": "Missing Humor parameter."})
+            resp.text = json.dumps({"error": "Missing Humor parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         humor = Humor(
@@ -169,7 +169,7 @@ class HumorResource(Resource):
             detailedLogger.error(
                 "Could not perform add humor to database operation!", exc_info=True
             )
-            resp.body = json.dumps({"error": "The server could not add the humor."})
+            resp.text = json.dumps({"error": "The server could not add the humor."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 

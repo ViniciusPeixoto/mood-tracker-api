@@ -53,14 +53,14 @@ class FoodResource(Resource):
             detailedLogger.error(
                 "Could not perform fetch food habits database operation!", exc_info=True
             )
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": "The server could not fetch the food habit."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
 
         if not food:
             simpleLogger.debug(f"No Food data with id {food_id}.")
-            resp.body = json.dumps({"error": f"No Food data with id {food_id}."})
+            resp.text = json.dumps({"error": f"No Food data with id {food_id}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
@@ -93,7 +93,7 @@ class FoodResource(Resource):
             food_date = datetime.strptime(food_date, "%Y-%m-%d").date()
         except Exception as e:
             detailedLogger.warning(f"Date {food_date} is malformed!", exc_info=True)
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {
                     "error": f"Date {food_date} is malformed! Correct format is YYYY-MM-DD."
                 }
@@ -108,13 +108,13 @@ class FoodResource(Resource):
             detailedLogger.error(
                 "Could not perform fetch food database operation!", exc_info=True
             )
-            resp.body = json.dumps({"error": "The server could not fetch the food."})
+            resp.text = json.dumps({"error": "The server could not fetch the food."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
         if not food:
             simpleLogger.debug(f"No Food data in date {food_date}.")
-            resp.body = json.dumps({"error": f"No Food data in date {food_date}."})
+            resp.text = json.dumps({"error": f"No Food data in date {food_date}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
@@ -144,7 +144,7 @@ class FoodResource(Resource):
         body = json.loads(body.decode("utf-8"))
         if not body:
             simpleLogger.debug("Missing request body for food habits.")
-            resp.body = json.dumps({"error": "Missing request body for food habits."})
+            resp.text = json.dumps({"error": "Missing request body for food habits."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         food_value = body.get("value")
@@ -152,7 +152,7 @@ class FoodResource(Resource):
 
         if not all((food_value, food_description)):
             simpleLogger.debug("Missing Food parameter.")
-            resp.body = json.dumps({"error": "Missing Food parameter."})
+            resp.text = json.dumps({"error": "Missing Food parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
         food = Food(value=food_value, description=food_description)
@@ -165,7 +165,7 @@ class FoodResource(Resource):
                 "Could not perform add food habits to database operation!",
                 exc_info=True,
             )
-            resp.body = json.dumps(
+            resp.text = json.dumps(
                 {"error": "The server could not add the food habit."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR

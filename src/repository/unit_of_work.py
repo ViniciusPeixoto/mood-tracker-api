@@ -4,10 +4,13 @@ from typing import Any, Callable
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from config import get_db_uri
+from src.repository.models import Base
 from src.repository.database import AbstractRepository, SQLRepository
-from src.utils.env import get_db_uri
 
 engine = create_engine(get_db_uri(), echo=True)
+# TODO: remove create tables from application 
+Base.metadata.create_all(bind=engine)
 DEFAULT_SESSION_FACTORY = sessionmaker(bind=engine, expire_on_commit=False)
 
 
