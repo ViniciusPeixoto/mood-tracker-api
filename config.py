@@ -2,7 +2,6 @@ import os
 
 from dynaconf import Dynaconf
 
-
 current_directory = os.path.dirname(os.path.realpath(__file__))
 
 settings = Dynaconf(
@@ -14,6 +13,7 @@ settings = Dynaconf(
 
 # `envvar_prefix` = export envvars with `export DYNACONF_FOO=bar`.
 # `settings_files` = Load these files in the order.
+
 
 def get_db_uri() -> str:
     db_name = settings.DB_NAME

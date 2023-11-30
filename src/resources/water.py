@@ -152,7 +152,7 @@ class WaterResource(Resource):
             `400 Bad Request`: Body data is missing
 
             `500 Server Error`: Database error
-            
+
             `201 CREATED`: Water intake's data successfully added
         """
         simpleLogger.info("POST /water-intake")

@@ -1,7 +1,7 @@
-from collections import namedtuple
 import json
 import logging
 import logging.config
+from collections import namedtuple
 from datetime import datetime
 
 import falcon
@@ -141,7 +141,7 @@ class MoodResource(Resource):
             `500 Server Error`: The server could not create a Mood instance
 
             `500 Server Error`: Database error
-            
+
             `201 CREATED`: Mood's data successfully added
         """
         simpleLogger.info("POST /mood")
@@ -177,18 +177,23 @@ class MoodResource(Resource):
             "water_intake": self.uow.repository.add_water_intake,
             "exercises": self.uow.repository.add_exercises,
             "food_habits": self.uow.repository.add_food_habits,
-            "mood": self.uow.repository.add_mood
+            "mood": self.uow.repository.add_mood,
         }
         for key in ["humor", "water_intake", "exercises", "food_habits", "mood"]:
             try:
-                simpleLogger.debug(f"Trying to add {key.title().replace('_', ' ')} data to database.")
+                simpleLogger.debug(
+                    f"Trying to add {key.title().replace('_', ' ')} data to database."
+                )
                 params_db_functions[key](mood_params[key])
                 self.uow.commit()
             except Exception as e:
                 detailedLogger.error(
-                    f"Could not perform add {key.title().replace('_', ' ')} to database operation!", exc_info=True
+                    f"Could not perform add {key.title().replace('_', ' ')} to database operation!",
+                    exc_info=True,
                 )
-                resp.text = json.dumps({"error": f"The server could not add the {key.replace('_', ' ')}."})
+                resp.text = json.dumps(
+                    {"error": f"The server could not add the {key.replace('_', ' ')}."}
+                )
                 resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
                 return
 
@@ -198,7 +203,7 @@ class MoodResource(Resource):
     def on_post_date(self, req: falcon.Request, resp: falcon.Response, mood_date: str):
         """
         Adds a new mood entry for a given date using pre-existing data for the date.
-        
+
         `POST` /mood/date/{mood_date}
 
         Args:
@@ -210,7 +215,7 @@ class MoodResource(Resource):
             `500 Server Error`: The server could not create a Mood instance
 
             `500 Server Error`: Database error
-            
+
             `201 CREATED`: Mood's data successfully added
         """
         simpleLogger.info(f"POST /mood/date/{mood_date}")

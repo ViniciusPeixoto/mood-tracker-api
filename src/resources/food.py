@@ -136,7 +136,7 @@ class FoodResource(Resource):
             `400 Bad Request`: Body data is missing
 
             `500 Server Error`: Database error
-            
+
             `201 CREATED`: Food habit's data successfully added
         """
         simpleLogger.info("POST /food")
