@@ -55,7 +55,7 @@ def test_get_from_date(client, humor_date, status_code):
                 "health_based": False,
                 "extra": "this should break",
             },
-            500,
+            400,
         ),
     ],
 )

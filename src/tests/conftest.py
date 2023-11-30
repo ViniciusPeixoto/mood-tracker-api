@@ -10,8 +10,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from app import run
 from config import get_db_uri, settings
 from src.repository.models import Base, Exercises, Food, Humor, Mood, Water
-from src.repository.unit_of_work import (AbstractUnitOfWork,
-                                         SQLAlchemyUnitOfWork)
+from src.repository.unit_of_work import AbstractUnitOfWork, SQLAlchemyUnitOfWork
 
 
 @pytest.fixture(scope="session", autouse=True)

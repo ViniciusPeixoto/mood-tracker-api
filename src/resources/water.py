@@ -164,6 +164,15 @@ class WaterResource(Resource):
             resp.status = falcon.HTTP_BAD_REQUEST
             return
 
+        allowed_params = ["date", "milliliters", "description", "pee"]
+        if set(body.keys()).difference(allowed_params):
+            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
         if not all(key in body for key in ["milliliters", "description", "pee"]):
             simpleLogger.debug("Missing Water parameter.")
             resp.text = json.dumps({"error": "Missing Water parameter."})

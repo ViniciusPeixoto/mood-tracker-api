@@ -55,7 +55,7 @@ def test_get_from_date(client, water_date, status_code):
                 "pee": False,
                 "extra": "this should break",
             },
-            500,
+            400,
         ),
     ],
 )

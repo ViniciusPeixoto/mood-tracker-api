@@ -46,7 +46,7 @@ def test_get_from_date(client, food_date, status_code):
                 "description": "eating in the park",
                 "extra": "this should break",
             },
-            500,
+            400,
         ),
     ],
 )

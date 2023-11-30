@@ -148,6 +148,15 @@ class FoodResource(Resource):
             resp.status = falcon.HTTP_BAD_REQUEST
             return
 
+        allowed_params = ["date", "value", "description"]
+        if set(body.keys()).difference(allowed_params):
+            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
         if not all(key in body for key in ["value", "description"]):
             simpleLogger.debug("Missing Food parameter.")
             resp.text = json.dumps({"error": "Missing Food parameter."})
