@@ -10,61 +10,61 @@ class AbstractRepository(ABC):
     def add_humor(self, humor: Humor) -> None:
         self._add_humor(humor)
 
-    def get_humor_by_id(self, humor_id: int):
+    def get_humor_by_id(self, humor_id: int) -> Humor:
         return self._get_humor_by_id(humor_id)
 
-    def get_humor_by_date(self, humor_date: datetime):
+    def get_humor_by_date(self, humor_date: datetime) -> Humor:
         return self._get_humor_by_date(humor_date)
 
-    def delete_humor(self, humor: Humor):
+    def delete_humor(self, humor: Humor) -> None:
         self._delete_humor(humor)
 
-    def add_water_intake(self, water_intake: Water):
+    def add_water_intake(self, water_intake: Water) -> None:
         self._add_water_intake(water_intake)
 
-    def get_water_intake_by_id(self, water_intake_id: int):
+    def get_water_intake_by_id(self, water_intake_id: int) -> Water:
         return self._get_water_intake_by_id(water_intake_id)
 
-    def get_water_intake_by_date(self, water_intake_date: datetime):
+    def get_water_intake_by_date(self, water_intake_date: datetime) -> Water:
         return self._get_water_intake_by_date(water_intake_date)
 
-    def delete_water_intake(self, water_intake: Water):
+    def delete_water_intake(self, water_intake: Water) -> None:
         self._delete_water_intake(water_intake)
 
-    def add_exercises(self, exercises: Exercises):
+    def add_exercises(self, exercises: Exercises) -> None:
         self._add_exercises(exercises)
 
-    def get_exercises_by_id(self, exercises_id: int):
+    def get_exercises_by_id(self, exercises_id: int) -> Exercises:
         return self._get_exercises_by_id(exercises_id)
 
-    def get_exercises_by_date(self, exercises_date: datetime):
+    def get_exercises_by_date(self, exercises_date: datetime) -> Exercises:
         return self._get_exercises_by_date(exercises_date)
 
-    def delete_exercises(self, exercises: Exercises):
+    def delete_exercises(self, exercises: Exercises) -> None:
         self._delete_exercises(exercises)
 
-    def add_food_habits(self, food_habits: Food):
+    def add_food_habits(self, food_habits: Food) -> None:
         self._add_food_habits(food_habits)
 
-    def get_food_habits_by_id(self, food_habits_id: int):
+    def get_food_habits_by_id(self, food_habits_id: int) -> Food:
         return self._get_food_habits_by_id(food_habits_id)
 
-    def get_food_habits_by_date(self, food_habits_date: datetime):
+    def get_food_habits_by_date(self, food_habits_date: datetime) -> Food:
         return self._get_food_habits_by_date(food_habits_date)
 
-    def delete_food_habits(self, food_habits: Food):
+    def delete_food_habits(self, food_habits: Food) -> None:
         self._delete_food_habits(food_habits)
 
-    def add_mood(self, mood: Mood):
+    def add_mood(self, mood: Mood) -> None:
         self._add_mood(mood)
 
-    def get_mood_by_id(self, mood_id: int):
+    def get_mood_by_id(self, mood_id: int) -> Mood:
         return self._get_mood_by_id(mood_id)
 
-    def get_mood_by_date(self, mood_date: datetime):
+    def get_mood_by_date(self, mood_date: datetime) -> Mood:
         return self._get_mood_by_date(mood_date)
 
-    def delete_mood(self, mood: Mood):
+    def delete_mood(self, mood: Mood) -> None:
         self._delete_mood(mood)
 
     @abstractmethod
