@@ -16,6 +16,9 @@ class AbstractRepository(ABC):
     def get_humor_by_date(self, humor_date: datetime):
         return self._get_humor_by_date(humor_date)
 
+    def delete_humor(self, humor: Humor):
+        self._delete_humor(humor)
+
     def add_water_intake(self, water_intake: Water):
         self._add_water_intake(water_intake)
 
@@ -24,6 +27,9 @@ class AbstractRepository(ABC):
 
     def get_water_intake_by_date(self, water_intake_date: datetime):
         return self._get_water_intake_by_date(water_intake_date)
+
+    def delete_water_intake(self, water_intake: Water):
+        self._delete_water_intake(water_intake)
 
     def add_exercises(self, exercises: Exercises):
         self._add_exercises(exercises)
@@ -34,6 +40,9 @@ class AbstractRepository(ABC):
     def get_exercises_by_date(self, exercises_date: datetime):
         return self._get_exercises_by_date(exercises_date)
 
+    def delete_exercises(self, exercises: Exercises):
+        self._delete_exercises(exercises)
+
     def add_food_habits(self, food_habits: Food):
         self._add_food_habits(food_habits)
 
@@ -43,6 +52,9 @@ class AbstractRepository(ABC):
     def get_food_habits_by_date(self, food_habits_date: datetime):
         return self._get_food_habits_by_date(food_habits_date)
 
+    def delete_food_habits(self, food_habits: Food):
+        self._delete_food_habits(food_habits)
+
     def add_mood(self, mood: Mood):
         self._add_mood(mood)
 
@@ -51,6 +63,9 @@ class AbstractRepository(ABC):
 
     def get_mood_by_date(self, mood_date: datetime):
         return self._get_mood_by_date(mood_date)
+
+    def delete_mood(self, mood: Mood):
+        self._delete_mood(mood)
 
     @abstractmethod
     def _add_humor(self, humor: Humor) -> None:
@@ -62,6 +77,10 @@ class AbstractRepository(ABC):
 
     @abstractmethod
     def _get_humor_by_date(self, humor_date: datetime) -> Humor:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _delete_humor(self, humor: Humor) -> Humor:
         raise NotImplementedError
 
     @abstractmethod
@@ -77,6 +96,10 @@ class AbstractRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def _delete_water_intake(self, water_intake: Water) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
     def _add_exercises(self, exercises: Exercises) -> None:
         raise NotImplementedError
 
@@ -86,6 +109,10 @@ class AbstractRepository(ABC):
 
     @abstractmethod
     def _get_exercises_by_date(self, exercises_date: datetime) -> Exercises:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _delete_exercises(self, exercises: Exercises) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -101,6 +128,10 @@ class AbstractRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def _delete_food_habits(self, food_habits: Food) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
     def _add_mood(self, mood: Mood) -> None:
         raise NotImplementedError
 
@@ -110,6 +141,10 @@ class AbstractRepository(ABC):
 
     @abstractmethod
     def _get_mood_by_date(self, mood_date: datetime) -> Mood:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _delete_mood(self, mood: Mood) -> None:
         raise NotImplementedError
 
 
@@ -127,6 +162,9 @@ class SQLRepository(AbstractRepository):
     def _get_humor_by_date(self, humor_date: datetime) -> Humor:
         return self.session.query(Humor).filter_by(date=humor_date).first()
 
+    def _delete_humor(self, humor: Humor) -> None:
+        self.session.delete(humor)
+
     def _add_water_intake(self, water_intake: Water) -> None:
         self.session.add(water_intake)
 
@@ -135,6 +173,9 @@ class SQLRepository(AbstractRepository):
 
     def _get_water_intake_by_date(self, water_intake_date: datetime) -> Water:
         return self.session.query(Water).filter_by(date=water_intake_date).first()
+
+    def _delete_water_intake(self, water_intake: Water) -> None:
+        self.session.delete(water_intake)
 
     def _add_exercises(self, exercises: Exercises) -> None:
         self.session.add(exercises)
@@ -145,6 +186,9 @@ class SQLRepository(AbstractRepository):
     def _get_exercises_by_date(self, exercises_date: datetime) -> Exercises:
         return self.session.query(Exercises).filter_by(date=exercises_date).first()
 
+    def _delete_exercises(self, exercises: Exercises) -> None:
+        self.session.delete(exercises)
+
     def _add_food_habits(self, food_habits: Food) -> None:
         self.session.add(food_habits)
 
@@ -154,6 +198,9 @@ class SQLRepository(AbstractRepository):
     def _get_food_habits_by_date(self, food_habits_date: datetime) -> Food:
         return self.session.query(Food).filter_by(date=food_habits_date).first()
 
+    def _delete_food_habits(self, food_habits: Food) -> None:
+        self.session.delete(food_habits)
+
     def _add_mood(self, mood: Mood) -> None:
         self.session.add(mood)
 
@@ -162,3 +209,6 @@ class SQLRepository(AbstractRepository):
 
     def _get_mood_by_date(self, mood_date: datetime) -> Mood:
         return self.session.query(Mood).filter_by(date=mood_date).first()
+
+    def _delete_mood(self, mood: Mood) -> None:
+        self.session.delete(mood)

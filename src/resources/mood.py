@@ -317,3 +317,121 @@ class MoodResource(Resource):
             )
 
         return Mood(**mood_params)
+
+    def on_delete(self, req: falcon.Request, resp: falcon.Response, mood_id: int):
+        """
+        Deletes a single mood's data using mood's ID
+
+        `DELETE` /mood/{mood_id}
+
+        Args:
+            mood_id: the mood's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: Mood's data successfully deleted
+        """
+        simpleLogger.info(f"DELETE /mood/{mood_id}")
+        mood = None
+        try:
+            simpleLogger.debug("Fetching mood from database using id.")
+            mood = self.uow.repository.get_mood_by_id(mood_id)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch mood database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not fetch the mood."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        if not mood:
+            simpleLogger.debug(f"No Mood data with id {mood_id}.")
+            resp.text = json.dumps({"error": f"No Mood data with id {mood_id}."})
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        try:
+            simpleLogger.debug("Deleting mood from database using id.")
+            self.uow.repository.delete_mood(mood)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform delete mood database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not delete the mood."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        resp.status = falcon.HTTP_NO_CONTENT
+        simpleLogger.info(f"DELETE /mood/{mood_id} : successful")
+
+    def on_delete_date(
+        self, req: falcon.Request, resp: falcon.Response, mood_date: str
+    ):
+        """
+        Deletes a single mood's data using mood's creation date
+
+        `DELETE` /mood/date/{mood_date}
+
+        Args:
+            mood_date: the mood's creation date
+
+        Responses:
+            `400 Bad Request`: Date could not be parsed
+
+            `404 Not Found`: No data for given date
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: Mood's data successfully deleted
+        """
+        simpleLogger.info(f"DELETE /mood/date/{mood_date}")
+        mood = None
+        try:
+            simpleLogger.debug("Formatting the date for mood.")
+            mood_date = datetime.strptime(mood_date, "%Y-%m-%d").date()
+        except Exception as e:
+            detailedLogger.warning(f"Date {mood_date} is malformed!", exc_info=True)
+            resp.text = json.dumps(
+                {
+                    "error": f"Date {mood_date} is malformed! Correct format is YYYY-MM-DD."
+                }
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+        try:
+            simpleLogger.debug("Fetching mood from database using date.")
+            mood = self.uow.repository.get_mood_by_date(mood_date)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch mood database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not fetch the mood."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        if not mood:
+            simpleLogger.debug(f"No Mood data in date {mood_date}.")
+            resp.text = json.dumps({"error": f"No Mood data in date {mood_date}."})
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        try:
+            simpleLogger.debug("Deleting mood from database using date.")
+            self.uow.repository.delete_mood(mood)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform delete mood database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not delete the mood."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        resp.status = falcon.HTTP_NO_CONTENT
+        simpleLogger.info(f"DELETE /mood/date/{mood_date} : successful")

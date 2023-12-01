@@ -4,6 +4,7 @@ import pytest
 from sqlalchemy import select
 
 from src.repository.models import Humor
+from src.repository.unit_of_work import AbstractUnitOfWork
 
 
 @pytest.mark.parametrize("humor_id, status_code", [(1, 200), (11, 404)])
@@ -59,12 +60,32 @@ def test_get_from_date(client, humor_date, status_code):
         ),
     ],
 )
-def test_post(client, body, status_code, session_factory):
+def test_post(client, body, status_code, uow: AbstractUnitOfWork):
     result = client.simulate_post(f"/humor", json=body)
 
     assert result.status_code == status_code
 
     if result.status_code < 400:
-        with session_factory() as session:
-            query = select(Humor).where(Humor.date == "2010-12-21").fetch(1)
-            assert session.scalar(query)
+        with uow:
+            assert uow.repository.get_humor_by_date("2010-12-21")
+
+
+def test_bare_delete(client, uow: AbstractUnitOfWork):
+    humor = Humor(
+        date="0004-01-01",
+        value="1",
+        description="Humor for deletion",
+        health_based=True,
+    )
+    humor_id = None
+    with uow:
+        uow.repository.add_humor(humor)
+        uow.commit()
+
+        humor_id = uow.repository.get_humor_by_date("0004-01-01").id
+
+    result = client.simulate_delete(f"/humor/{humor_id}")
+    assert result.status_code == 204
+
+    with uow:
+        assert not uow.repository.get_humor_by_id(humor_id)
