@@ -34,7 +34,15 @@ class Humor(Base):
         }}'
 
     def __repr__(self) -> str:
-        return f"Humor({self.id=}, {self.value=}, {self.description=})"
+        return f'Humor("id"="{self.id}", "date"="{self.date}", "value"="{self.value}", "description"="{self.description}", "health_based"="{self.health_based}")'
+
+    def __eq__(self, other: object) -> bool:
+        return all([
+            str(self.date) == str(other.date),
+            self.value == other.value,
+            self.description == other.description,
+            self.health_based == other.health_based
+        ])
 
 
 class Water(Base):
@@ -62,7 +70,15 @@ class Water(Base):
         }}'
 
     def __repr__(self) -> str:
-        return f"Water Intake({self.id=}, {self.milliliters=}, {self.description=})"
+        return f'Water Intake("id"="{self.id}", "date"="{self.date}", "milliliters"="{self.milliliters}", "description"="{self.description}", "pee"="{self.pee}")'
+
+    def __eq__(self, other: object) -> bool:
+        return all([
+            str(self.date) == str(other.date),
+            self.milliliters == other.milliliters,
+            self.description == other.description,
+            self.pee == other.pee
+        ])
 
 
 class Exercises(Base):
@@ -88,7 +104,14 @@ class Exercises(Base):
         }}'
 
     def __repr__(self) -> str:
-        return f"Exercises({self.id=}, {self.minutes=}, {self.description=})"
+        return f'Exercises("id"="{self.id}", "date"="{self.date}", "minutes"="{self.minutes}", "description"="{self.description}")'
+
+    def __eq__(self, other: object) -> bool:
+        return all([
+            str(self.date) == str(other.date),
+            self.minutes == other.minutes,
+            self.description == other.description
+        ])
 
 
 class Food(Base):
@@ -114,7 +137,14 @@ class Food(Base):
         }}'
 
     def __repr__(self) -> str:
-        return f"Food Habits({self.id=}, {self.value=}, {self.description=})"
+        return f'Food Habits("id"="{self.id}", "date"="{self.date}", "value"="{self.value}", "description"="{self.description}")'
+
+    def __eq__(self, other: object) -> bool:
+        return all([
+            str(self.date) == str(other.date),
+            self.value == other.value,
+            self.description == other.description
+        ])
 
 
 class Mood(Base):
@@ -145,4 +175,13 @@ class Mood(Base):
         }}'
 
     def __repr__(self) -> str:
-        return f"Mood({self.id=}, {self.date=}, {self.humor=}, {self.water_intake=}, {self.exercises=}, {self.food_habits=})"
+        return f'Mood("id"="{self.id}", "date"="{self.date}", "humor"={self.humor}, "water_intake"={self.water_intake}, "exercises"={self.exercises}, "food_habits"={self.food_habits})'
+
+    def __eq__(self, other: object) -> bool:
+        return all([
+            str(self.date) == str(other.date),
+            self.humor == other.humor,
+            self.water_intake == other.water_intake,
+            self.exercises == other.exercises,
+            self.food_habits == other.food_habits,
+        ])

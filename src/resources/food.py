@@ -191,6 +191,70 @@ class FoodResource(Resource):
         resp.status = falcon.HTTP_CREATED
         simpleLogger.info("POST /food : successful")
 
+    def on_patch(self, req: falcon.Request, resp: falcon.Response, food_id: int):
+        """
+        Updates a single food habits's data using food habits's ID
+
+        `PATCH` /food/{food_id}
+
+        Args:
+            food_id: the food habits's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: Exercises's data successfully updated
+        """
+        simpleLogger.info(f"PATCH /food/{food_id}")
+        food_habits = None
+        try:
+            simpleLogger.debug("Fetching food habits from database using id.")
+            food_habits = self.uow.repository.get_food_habits_by_id(food_id)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch food habits database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not fetch the food habits."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        body = req.stream.read(req.content_length or 0)
+        body = json.loads(body.decode("utf-8"))
+        if not body:
+            simpleLogger.debug("Missing request body for food habits.")
+            resp.text = json.dumps({"error": "Missing request body for food habits."})
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        allowed_params = ["value", "description"]
+        if set(body.keys()).difference(allowed_params):
+            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        try:
+            simpleLogger.debug("Updatingfood habits from database using id.")
+            self.uow.repository.update_food_habits(food_habits, body)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform update food habits database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not update the food habits."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        updated_food = self.uow.repository.get_food_habits_by_id(food_id)
+        resp.text = json.dumps(json.loads(str(updated_food)))
+        resp.status = falcon.HTTP_OK
+        simpleLogger.info(f"PATCH /food/{food_id} : successful")
+
     def on_delete(self, req: falcon.Request, resp: falcon.Response, food_id: int):
         """
         Deletes a single food's data using food's ID

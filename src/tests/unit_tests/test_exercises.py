@@ -32,12 +32,12 @@ def test_get_from_date(client, exercise_date, status_code):
     "body, status_code",
     [
         (
-            {"date": "2009-12-21", "minutes": 15, "description": "running in the park"},
+            {"date": "2012-12-21", "minutes": 15, "description": "running in the park"},
             201,
         ),
         (
             {
-                "date": "2009-12-21",
+                "date": "2012-12-21",
                 "minutes": 15,
             },
             400,
@@ -45,7 +45,7 @@ def test_get_from_date(client, exercise_date, status_code):
         ({}, 400),
         (
             {
-                "date": "2009-12-21",
+                "date": "2012-12-21",
                 "minutes": 15,
                 "description": "running in the park",
                 "extra": "this should break",
@@ -61,21 +61,71 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
 
     if result.status_code < 400:
         with uow:
-            assert uow.repository.get_exercises_by_date("2009-12-21")
+            assert uow.repository.get_exercises_by_date("2012-12-21")
+
+
+@pytest.mark.parametrize(
+    "body, status_code",
+    [
+        (
+            {
+                "minutes": 10,
+                "description": "running in the park",
+            },
+            200,
+        ),
+        (
+            {
+                "minutes": 10,
+            },
+            200,
+        ),
+        ({}, 400),
+        (
+            {
+                "minutes": 10,
+                "description": "running in the park",
+                "extra": "this should break",
+            },
+            400,
+        ),
+    ],
+)
+def test_update(client, body, status_code, uow: AbstractUnitOfWork):
+    exercises_params = {"date":"2012-12-21",
+        "minutes":"1",
+        "description":"Exercises for updating"
+    }
+    exercises = Exercises(**exercises_params)
+    exercises_id = None
+    with uow:
+        uow.repository.add_exercises(exercises)
+        uow.flush()
+
+        exercises_id = uow.repository.get_exercises_by_date("2012-12-21").id
+
+        result = client.simulate_patch(f"/exercises/{exercises_id}", json=body)
+
+    assert result.status_code == status_code
+
+    if result.status_code < 400:
+        exercises_params.update(body)
+        with uow:
+            assert uow.repository.get_exercises_by_date("2012-12-21") == Exercises(**exercises_params)
 
 
 def test_delete(client, uow: AbstractUnitOfWork):
     exercise = Exercises(
-        date="0002-01-01", minutes=10, description="Exercise for deletion"
+        date="2012-12-21", minutes=10, description="Exercise for deletion"
     )
     exercise_id = None
     with uow:
         uow.repository.add_exercises(exercise)
-        uow.commit()
+        uow.flush()
 
-        exercise_id = uow.repository.get_exercises_by_date("0002-01-01").id
+        exercise_id = uow.repository.get_exercises_by_date("2012-12-21").id
 
-    result = client.simulate_delete(f"/exercises/{exercise_id}")
+        result = client.simulate_delete(f"/exercises/{exercise_id}")
     assert result.status_code == 204
 
     with uow:

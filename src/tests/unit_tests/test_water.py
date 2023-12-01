@@ -33,7 +33,7 @@ def test_get_from_date(client, water_date, status_code):
     [
         (
             {
-                "date": "2009-12-21",
+                "date": "2012-12-21",
                 "milliliters": 1000,
                 "description": "drinking in the park",
                 "pee": False,
@@ -42,7 +42,7 @@ def test_get_from_date(client, water_date, status_code):
         ),
         (
             {
-                "date": "2009-12-21",
+                "date": "2012-12-21",
                 "milliliters": 1000,
             },
             400,
@@ -50,7 +50,7 @@ def test_get_from_date(client, water_date, status_code):
         ({}, 400),
         (
             {
-                "date": "2009-12-21",
+                "date": "2012-12-21",
                 "milliliters": 1000,
                 "description": "drinking in the park",
                 "pee": False,
@@ -67,12 +67,65 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
 
     if result.status_code < 400:
         with uow:
-            assert uow.repository.get_water_intake_by_date("2009-12-21")
+            assert uow.repository.get_water_intake_by_date("2012-12-21")
+
+
+@pytest.mark.parametrize(
+    "body, status_code",
+    [
+        (
+            {
+                "milliliters": 10,
+                "description": "eating in the park",
+                "pee": False
+            },
+            200,
+        ),
+        (
+            {
+                "milliliters": 10,
+            },
+            200,
+        ),
+        ({}, 400),
+        (
+            {
+                "milliliters": 10,
+                "description": "eating in the park",
+                "pee": False,
+                "extra": "this should break",
+            },
+            400,
+        ),
+    ],
+)
+def test_update(client, body, status_code, uow: AbstractUnitOfWork):
+    water_intake_params = {"date":"2012-12-21",
+        "milliliters":"1",
+        "description":"Water for updating",
+        "pee": True
+    }
+    water_intake = Water(**water_intake_params)
+    water_intake_id = None
+    with uow:
+        uow.repository.add_water_intake(water_intake)
+        uow.flush()
+
+        water_intake_id = uow.repository.get_water_intake_by_date("2012-12-21").id
+
+        result = client.simulate_patch(f"/water-intake/{water_intake_id}", json=body)
+
+    assert result.status_code == status_code
+
+    if result.status_code < 400:
+        water_intake_params.update(body)
+        with uow:
+            assert uow.repository.get_water_intake_by_date("2012-12-21") == Water(**water_intake_params)
 
 
 def test_delete(client, uow: AbstractUnitOfWork):
     water_intake = Water(
-        date="0005-01-01",
+        date="2012-12-21",
         milliliters="1",
         description="Water Intake for deletion",
         pee=True,
@@ -80,11 +133,11 @@ def test_delete(client, uow: AbstractUnitOfWork):
     water_intake_id = None
     with uow:
         uow.repository.add_water_intake(water_intake)
-        uow.commit()
+        uow.flush()
 
-        water_intake_id = uow.repository.get_water_intake_by_date("0005-01-01").id
+        water_intake_id = uow.repository.get_water_intake_by_date("2012-12-21").id
 
-    result = client.simulate_delete(f"/water-intake/{water_intake_id}")
+        result = client.simulate_delete(f"/water-intake/{water_intake_id}")
     assert result.status_code == 204
 
     with uow:

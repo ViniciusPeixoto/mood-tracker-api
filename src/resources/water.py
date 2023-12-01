@@ -209,6 +209,70 @@ class WaterResource(Resource):
         resp.status = falcon.HTTP_CREATED
         simpleLogger.info("POST /water-intake: successful")
 
+    def on_patch(self, req: falcon.Request, resp: falcon.Response, water_intake_id: int):
+        """
+        Updates a single water intake's data using water intake's ID
+
+        `PATCH` /water-intake/{water_intake_id}
+
+        Args:
+            water_intake_id: the water intake's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: Exercises's data successfully updated
+        """
+        simpleLogger.info(f"PATCH /water-intake/{water_intake_id}")
+        water_intake = None
+        try:
+            simpleLogger.debug("Fetching water intake from database using id.")
+            water_intake = self.uow.repository.get_water_intake_by_id(water_intake_id)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch water intake database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not fetch the water intake."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        body = req.stream.read(req.content_length or 0)
+        body = json.loads(body.decode("utf-8"))
+        if not body:
+            simpleLogger.debug("Missing request body for water intake.")
+            resp.text = json.dumps({"error": "Missing request body for water intake."})
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        allowed_params = ["milliliters", "description", "pee"]
+        if set(body.keys()).difference(allowed_params):
+            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        try:
+            simpleLogger.debug("Updating water intake from database using id.")
+            self.uow.repository.update_water_intake(water_intake, body)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform update water intake database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not update the water intake."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        updated_water_intake = self.uow.repository.get_water_intake_by_id(water_intake_id)
+        resp.text = json.dumps(json.loads(str(updated_water_intake)))
+        resp.status = falcon.HTTP_OK
+        simpleLogger.info(f"PATCH /water-intake/{water_intake_id} : successful")
+
     def on_delete(
         self, req: falcon.Request, resp: falcon.Response, water_intake_id: int
     ):

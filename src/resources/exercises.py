@@ -198,6 +198,70 @@ class ExercisesResource(Resource):
         resp.status = falcon.HTTP_CREATED
         simpleLogger.info("POST /exercises : successful")
 
+    def on_patch(self, req: falcon.Request, resp: falcon.Response, exercises_id: int):
+        """
+        Updates a single exercises's data using exercises's ID
+
+        `PATCH` /exercises/{exercises_id}
+
+        Args:
+            exercises_id: the exercises's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: Exercises's data successfully updated
+        """
+        simpleLogger.info(f"PATCH /exercises/{exercises_id}")
+        exercises = None
+        try:
+            simpleLogger.debug("Fetching exercises from database using id.")
+            exercises = self.uow.repository.get_exercises_by_id(exercises_id)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch exercises database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not fetch the exercises."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        body = req.stream.read(req.content_length or 0)
+        body = json.loads(body.decode("utf-8"))
+        if not body:
+            simpleLogger.debug("Missing request body for exercises.")
+            resp.text = json.dumps({"error": "Missing request body for exercises."})
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        allowed_params = ["minutes", "description"]
+        if set(body.keys()).difference(allowed_params):
+            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        try:
+            simpleLogger.debug("Updating exercises from database using id.")
+            self.uow.repository.update_exercises(exercises, body)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform update exercises database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not update the exercises."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        updated_exercises = self.uow.repository.get_exercises_by_id(exercises_id)
+        resp.text = json.dumps(json.loads(str(updated_exercises)))
+        resp.status = falcon.HTTP_OK
+        simpleLogger.info(f"PATCH /exercises/{exercises_id} : successful")
+
     def on_delete(self, req: falcon.Request, resp: falcon.Response, exercises_id: int):
         """
         Deletes a single exercise's data using exercise's ID

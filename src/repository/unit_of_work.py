@@ -11,7 +11,7 @@ from src.repository.models import Base
 engine = create_engine(get_db_uri(), echo=True)
 # TODO: remove create tables from application
 Base.metadata.create_all(bind=engine)
-DEFAULT_SESSION_FACTORY = sessionmaker(bind=engine, expire_on_commit=False)
+DEFAULT_SESSION = sessionmaker(bind=engine, expire_on_commit=False)()
 
 
 class AbstractUnitOfWork(ABC):
@@ -29,6 +29,9 @@ class AbstractUnitOfWork(ABC):
     def rollback(self):
         self._rollback()
 
+    def flush(self):
+        self._flush()
+
     @abstractmethod
     def _commit(self):
         raise NotImplementedError
@@ -37,15 +40,18 @@ class AbstractUnitOfWork(ABC):
     def _rollback(self):
         raise NotImplementedError
 
+    @abstractmethod
+    def _flush(self):
+        raise NotImplementedError
+
 
 class SQLAlchemyUnitOfWork(AbstractUnitOfWork):
     def __init__(
-        self, session_factory: Callable[[], Session] = DEFAULT_SESSION_FACTORY
+        self, session: Callable[[], Session] = DEFAULT_SESSION
     ) -> None:
-        self.session_factory = session_factory
+        self.session = session
 
     def __enter__(self) -> AbstractUnitOfWork:
-        self.session = self.session_factory()
         self.repository = SQLRepository(self.session)
         return super().__enter__()
 
@@ -58,3 +64,6 @@ class SQLAlchemyUnitOfWork(AbstractUnitOfWork):
 
     def _rollback(self):
         self.session.rollback()
+
+    def _flush(self):
+        self.session.flush()
