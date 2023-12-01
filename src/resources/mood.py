@@ -332,7 +332,7 @@ class MoodResource(Resource):
 
             `500 Server Error`: Database error
 
-            `204 No Content`: Humor's data successfully updated
+            `200 OK`: Humor's data successfully updated
         """
         simpleLogger.info(f"PATCH /mood/{mood_id}")
         mood = None

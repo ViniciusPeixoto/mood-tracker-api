@@ -212,7 +212,7 @@ class ExercisesResource(Resource):
 
             `500 Server Error`: Database error
 
-            `204 No Content`: Exercises's data successfully updated
+            `200 OK`: Exercises's data successfully updated
         """
         simpleLogger.info(f"PATCH /exercises/{exercises_id}")
         exercises = None
