@@ -8,7 +8,7 @@ from src.repository.unit_of_work import AbstractUnitOfWork
 
 
 @pytest.mark.parametrize("mood_id, status_code", [(1, 200), (11, 404)])
-def test_bare_get(client, mood_id, status_code):
+def test_get(client, mood_id, status_code):
     result = client.simulate_get(f"/mood/{mood_id}")
 
     assert result.status_code == status_code
@@ -114,7 +114,7 @@ def test_get_from_date(client, mood_date, status_code):
         ),
     ],
 )
-def test_bare_post(client, body, status_code, uow: AbstractUnitOfWork):
+def test_post(client, body, status_code, uow: AbstractUnitOfWork):
     result = client.simulate_post(f"/mood", json=body)
 
     assert result.status_code == status_code
@@ -124,7 +124,7 @@ def test_bare_post(client, body, status_code, uow: AbstractUnitOfWork):
             assert uow.repository.get_mood_by_date("2012-12-21")
 
 
-def test_bare_delete(client, uow: AbstractUnitOfWork):
+def test_delete(client, uow: AbstractUnitOfWork):
     water_intake = Water(
         date="0001-01-01",
         milliliters="1",

@@ -8,7 +8,7 @@ from src.repository.unit_of_work import AbstractUnitOfWork
 
 
 @pytest.mark.parametrize("food_id, status_code", [(1, 200), (11, 404)])
-def test_bare_get(client, food_id, status_code):
+def test_get(client, food_id, status_code):
     result = client.simulate_get(f"/food/{food_id}")
 
     assert result.status_code == status_code
@@ -61,7 +61,7 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
             assert uow.repository.get_food_habits_by_date("2011-12-21")
 
 
-def test_bare_delete(client, uow: AbstractUnitOfWork):
+def test_delete(client, uow: AbstractUnitOfWork):
     food = Food(date="0003-01-01", value="1", description="Food for deletion")
     food_id = None
     with uow:
