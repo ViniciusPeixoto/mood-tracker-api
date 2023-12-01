@@ -4,10 +4,11 @@ import pytest
 from sqlalchemy import select
 
 from src.repository.models import Food
+from src.repository.unit_of_work import AbstractUnitOfWork
 
 
 @pytest.mark.parametrize("food_id, status_code", [(1, 200), (11, 404)])
-def test_bare_get(client, food_id, status_code):
+def test_get(client, food_id, status_code):
     result = client.simulate_get(f"/food/{food_id}")
 
     assert result.status_code == status_code
@@ -50,12 +51,27 @@ def test_get_from_date(client, food_date, status_code):
         ),
     ],
 )
-def test_post(client, body, status_code, session_factory):
+def test_post(client, body, status_code, uow: AbstractUnitOfWork):
     result = client.simulate_post(f"/food", json=body)
 
     assert result.status_code == status_code
 
     if result.status_code < 400:
-        with session_factory() as session:
-            query = select(Food).where(Food.date == "2011-12-21").fetch(1)
-            assert session.scalar(query)
+        with uow:
+            assert uow.repository.get_food_habits_by_date("2011-12-21")
+
+
+def test_delete(client, uow: AbstractUnitOfWork):
+    food = Food(date="0003-01-01", value="1", description="Food for deletion")
+    food_id = None
+    with uow:
+        uow.repository.add_food_habits(food)
+        uow.commit()
+
+        food_id = uow.repository.get_food_habits_by_date("0003-01-01").id
+
+    result = client.simulate_delete(f"/food/{food_id}")
+    assert result.status_code == 204
+
+    with uow:
+        assert not uow.repository.get_food_habits_by_id(food_id)

@@ -190,3 +190,121 @@ class FoodResource(Resource):
 
         resp.status = falcon.HTTP_CREATED
         simpleLogger.info("POST /food : successful")
+
+    def on_delete(self, req: falcon.Request, resp: falcon.Response, food_id: int):
+        """
+        Deletes a single food's data using food's ID
+
+        `DELETE` /food/{food_id}
+
+        Args:
+            food_id: the food's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: Food's data successfully deleted
+        """
+        simpleLogger.info(f"DELETE /food/{food_id}")
+        food = None
+        try:
+            simpleLogger.debug("Fetching food from database using id.")
+            food = self.uow.repository.get_food_habits_by_id(food_id)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch food database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not fetch the food."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        if not food:
+            simpleLogger.debug(f"No Food data with id {food_id}.")
+            resp.text = json.dumps({"error": f"No Food data with id {food_id}."})
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        try:
+            simpleLogger.debug("Deleting food from database using id.")
+            self.uow.repository.delete_food_habits(food)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform delete food database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not delete the food."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        resp.status = falcon.HTTP_NO_CONTENT
+        simpleLogger.info(f"DELETE /food/{food_id} : successful")
+
+    def on_delete_date(
+        self, req: falcon.Request, resp: falcon.Response, food_date: str
+    ):
+        """
+        Deletes a single food's data using food's creation date
+
+        `DELETE` /food/date/{food_date}
+
+        Args:
+            food_date: the food's creation date
+
+        Responses:
+            `400 Bad Request`: Date could not be parsed
+
+            `404 Not Found`: No data for given date
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: Food's data successfully deleted
+        """
+        simpleLogger.info(f"DELETE /food/date/{food_date}")
+        food = None
+        try:
+            simpleLogger.debug("Formatting the date for food.")
+            food_date = datetime.strptime(food_date, "%Y-%m-%d").date()
+        except Exception as e:
+            detailedLogger.warning(f"Date {food_date} is malformed!", exc_info=True)
+            resp.text = json.dumps(
+                {
+                    "error": f"Date {food_date} is malformed! Correct format is YYYY-MM-DD."
+                }
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+        try:
+            simpleLogger.debug("Fetching food from database using date.")
+            food = self.uow.repository.get_food_habits_by_date(food_date)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch food database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not fetch the food."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        if not food:
+            simpleLogger.debug(f"No Food data in date {food_date}.")
+            resp.text = json.dumps({"error": f"No Food data in date {food_date}."})
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        try:
+            simpleLogger.debug("Deleting food from database using date.")
+            self.uow.repository.delete_food_habits(food)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform delete food database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not delete the food."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        resp.status = falcon.HTTP_NO_CONTENT
+        simpleLogger.info(f"DELETE /food/date/{food_date} : successful")

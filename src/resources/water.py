@@ -208,3 +208,143 @@ class WaterResource(Resource):
 
         resp.status = falcon.HTTP_CREATED
         simpleLogger.info("POST /water-intake: successful")
+
+    def on_delete(
+        self, req: falcon.Request, resp: falcon.Response, water_intake_id: int
+    ):
+        """
+        Deletes a single water_intake's data using water_intake's ID
+
+        `DELETE` /water-intake/{water_intake_id}
+
+        Args:
+            water_intake_id: the water_intake's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: Water Intake's data successfully deleted
+        """
+        simpleLogger.info(f"DELETE /water-intake/{water_intake_id}")
+        water_intake = None
+        try:
+            simpleLogger.debug("Fetching water_intake from database using id.")
+            water_intake = self.uow.repository.get_water_intake_by_id(water_intake_id)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch water_intake database operation!",
+                exc_info=True,
+            )
+            resp.text = json.dumps(
+                {"error": "The server could not fetch the water_intake."}
+            )
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        if not water_intake:
+            simpleLogger.debug(f"No Water Intake data with id {water_intake_id}.")
+            resp.text = json.dumps(
+                {"error": f"No Water Intake data with id {water_intake_id}."}
+            )
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        try:
+            simpleLogger.debug("Deleting water_intake from database using id.")
+            self.uow.repository.delete_water_intake(water_intake)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform delete water_intake database operation!",
+                exc_info=True,
+            )
+            resp.text = json.dumps(
+                {"error": "The server could not delete the water_intake."}
+            )
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        resp.status = falcon.HTTP_NO_CONTENT
+        simpleLogger.info(f"DELETE /water-intake/{water_intake_id} : successful")
+
+    def on_delete_date(
+        self, req: falcon.Request, resp: falcon.Response, water_intake_date: str
+    ):
+        """
+        Deletes a single water_intake's data using water_intake's creation date
+
+        `DELETE` /water-intake/date/{water_intake_date}
+
+        Args:
+            water_intake_date: the water_intake's creation date
+
+        Responses:
+            `400 Bad Request`: Date could not be parsed
+
+            `404 Not Found`: No data for given date
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: Water Intake's data successfully deleted
+        """
+        simpleLogger.info(f"DELETE /water-intake/date/{water_intake_date}")
+        water_intake = None
+        try:
+            simpleLogger.debug("Formatting the date for water_intake.")
+            water_intake_date = datetime.strptime(water_intake_date, "%Y-%m-%d").date()
+        except Exception as e:
+            detailedLogger.warning(
+                f"Date {water_intake_date} is malformed!", exc_info=True
+            )
+            resp.text = json.dumps(
+                {
+                    "error": f"Date {water_intake_date} is malformed! Correct format is YYYY-MM-DD."
+                }
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+        try:
+            simpleLogger.debug("Fetching water_intake from database using date.")
+            water_intake = self.uow.repository.get_water_intake_by_date(
+                water_intake_date
+            )
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch water_intake database operation!",
+                exc_info=True,
+            )
+            resp.text = json.dumps(
+                {"error": "The server could not fetch the water_intake."}
+            )
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        if not water_intake:
+            simpleLogger.debug(f"No Water Intake data in date {water_intake_date}.")
+            resp.text = json.dumps(
+                {"error": f"No Water Intake data in date {water_intake_date}."}
+            )
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        try:
+            simpleLogger.debug("Deleting water_intake from database using date.")
+            self.uow.repository.delete_water_intake(water_intake)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform delete water_intake database operation!",
+                exc_info=True,
+            )
+            resp.text = json.dumps(
+                {"error": "The server could not delete the water_intake."}
+            )
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        resp.status = falcon.HTTP_NO_CONTENT
+        simpleLogger.info(f"DELETE /water-intake/date/{water_intake_date} : successful")

@@ -56,6 +56,7 @@ class HumorResource(Resource):
             )
             resp.text = json.dumps({"error": "The server could not fetch the humor."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
 
         if not humor:
             simpleLogger.debug(f"No Humor data with id {humor_id}.")
@@ -187,3 +188,121 @@ class HumorResource(Resource):
 
         resp.status = falcon.HTTP_CREATED
         simpleLogger.info("POST /humor : successful")
+
+    def on_delete(self, req: falcon.Request, resp: falcon.Response, humor_id: int):
+        """
+        Deletes a single humor's data using humor's ID
+
+        `DELETE` /humor/{humor_id}
+
+        Args:
+            humor_id: the humor's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: Humor's data successfully deleted
+        """
+        simpleLogger.info(f"DELETE /humor/{humor_id}")
+        humor = None
+        try:
+            simpleLogger.debug("Fetching humor from database using id.")
+            humor = self.uow.repository.get_humor_by_id(humor_id)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch humor database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not fetch the humor."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        if not humor:
+            simpleLogger.debug(f"No Humor data with id {humor_id}.")
+            resp.text = json.dumps({"error": f"No Humor data with id {humor_id}."})
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        try:
+            simpleLogger.debug("Deleting humor from database using id.")
+            self.uow.repository.delete_humor(humor)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform delete humor database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not delete the humor."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        resp.status = falcon.HTTP_NO_CONTENT
+        simpleLogger.info(f"DELETE /humor/{humor_id} : successful")
+
+    def on_delete_date(
+        self, req: falcon.Request, resp: falcon.Response, humor_date: str
+    ):
+        """
+        Deletes a single humor's data using humor's creation date
+
+        `DELETE` /humor/date/{humor_date}
+
+        Args:
+            humor_date: the humor's creation date
+
+        Responses:
+            `400 Bad Request`: Date could not be parsed
+
+            `404 Not Found`: No data for given date
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: Humor's data successfully deleted
+        """
+        simpleLogger.info(f"DELETE /humor/date/{humor_date}")
+        humor = None
+        try:
+            simpleLogger.debug("Formatting the date for humor.")
+            humor_date = datetime.strptime(humor_date, "%Y-%m-%d").date()
+        except Exception as e:
+            detailedLogger.warning(f"Date {humor_date} is malformed!", exc_info=True)
+            resp.text = json.dumps(
+                {
+                    "error": f"Date {humor_date} is malformed! Correct format is YYYY-MM-DD."
+                }
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+        try:
+            simpleLogger.debug("Fetching humor from database using date.")
+            humor = self.uow.repository.get_humor_by_date(humor_date)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch humor database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not fetch the humor."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        if not humor:
+            simpleLogger.debug(f"No Humor data in date {humor_date}.")
+            resp.text = json.dumps({"error": f"No Humor data in date {humor_date}."})
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        try:
+            simpleLogger.debug("Deleting humor from database using date.")
+            self.uow.repository.delete_humor(humor)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform delete humor database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not delete the humor."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        resp.status = falcon.HTTP_NO_CONTENT
+        simpleLogger.info(f"DELETE /humor/date/{humor_date} : successful")
