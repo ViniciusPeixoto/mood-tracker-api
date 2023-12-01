@@ -188,29 +188,37 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
 )
 def test_update(client, body, status_code, uow: AbstractUnitOfWork):
     mood_params = {
-        "date":"2012-12-21",
-        "humor": Humor(**{
-            "date":"2012-12-21",
-            "value": 1,
-            "description": "Humor for updating.",
-            "health_based": True,
-        }),
-        "water_intake": Water(**{
-            "date":"2012-12-21",
-            "milliliters": 1,
-            "description": "Consumo de água for updating.",
-            "pee": True,
-        }),
-        "exercises": Exercises(**{
-            "date":"2012-12-21",
-            "minutes": 1,
-            "description": "Exercícios for updating.",
-        }),
-        "food_habits": Food(**{
-            "date":"2012-12-21",
-            "value": 1,
-            "description": "Alimentação for updating.",
-        })
+        "date": "2012-12-21",
+        "humor": Humor(
+            **{
+                "date": "2012-12-21",
+                "value": 1,
+                "description": "Humor for updating.",
+                "health_based": True,
+            }
+        ),
+        "water_intake": Water(
+            **{
+                "date": "2012-12-21",
+                "milliliters": 1,
+                "description": "Consumo de água for updating.",
+                "pee": True,
+            }
+        ),
+        "exercises": Exercises(
+            **{
+                "date": "2012-12-21",
+                "minutes": 1,
+                "description": "Exercícios for updating.",
+            }
+        ),
+        "food_habits": Food(
+            **{
+                "date": "2012-12-21",
+                "value": 1,
+                "description": "Alimentação for updating.",
+            }
+        ),
     }
     mood = Mood(**mood_params)
     mood_id = None
@@ -226,29 +234,37 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
 
     if result.status_code < 400:
         mood_params = {
-            "date":"2012-12-21",
-            "humor": Humor(**{
-                "date":"2012-12-21",
-                "value": 1,
-                "description": "Humor for updating.",
-                "health_based": True,
-            }),
-            "water_intake": Water(**{
-                "date":"2012-12-21",
-                "milliliters": 1,
-                "description": "Consumo de água for updating.",
-                "pee": True,
-            }),
-            "exercises": Exercises(**{
-                "date":"2012-12-21",
-                "minutes": 1,
-                "description": "Exercícios for updating.",
-            }),
-            "food_habits": Food(**{
-                "date":"2012-12-21",
-                "value": 1,
-                "description": "Alimentação for updating.",
-            })
+            "date": "2012-12-21",
+            "humor": Humor(
+                **{
+                    "date": "2012-12-21",
+                    "value": 1,
+                    "description": "Humor for updating.",
+                    "health_based": True,
+                }
+            ),
+            "water_intake": Water(
+                **{
+                    "date": "2012-12-21",
+                    "milliliters": 1,
+                    "description": "Consumo de água for updating.",
+                    "pee": True,
+                }
+            ),
+            "exercises": Exercises(
+                **{
+                    "date": "2012-12-21",
+                    "minutes": 1,
+                    "description": "Exercícios for updating.",
+                }
+            ),
+            "food_habits": Food(
+                **{
+                    "date": "2012-12-21",
+                    "value": 1,
+                    "description": "Alimentação for updating.",
+                }
+            ),
         }
         params_classes = {
             "humor": Humor,
@@ -257,9 +273,9 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
             "food_habits": Food,
         }
         mood_updated_params = {
-                key: params_classes.get(key)(date="2012-12-21",**body.get(key))
-                for key in body
-            }
+            key: params_classes.get(key)(date="2012-12-21", **body.get(key))
+            for key in body
+        }
         mood_params.update(mood_updated_params)
         with uow:
             expected = Mood(**mood_params)

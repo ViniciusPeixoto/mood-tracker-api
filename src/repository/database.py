@@ -112,7 +112,9 @@ class AbstractRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _update_water_intake(self, water_intake: Water, water_intake_data: dict) -> None:
+    def _update_water_intake(
+        self, water_intake: Water, water_intake_data: dict
+    ) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -206,7 +208,9 @@ class SQLRepository(AbstractRepository):
     def _get_water_intake_by_date(self, water_intake_date: datetime) -> Water:
         return self.session.query(Water).filter_by(date=water_intake_date).first()
 
-    def _update_water_intake(self, water_intake: Water, water_intake_data: dict) -> None:
+    def _update_water_intake(
+        self, water_intake: Water, water_intake_data: dict
+    ) -> None:
         for key in water_intake_data:
             setattr(water_intake, key, water_intake_data[key])
 

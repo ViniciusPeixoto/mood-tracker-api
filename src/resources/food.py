@@ -217,7 +217,9 @@ class FoodResource(Resource):
             detailedLogger.error(
                 "Could not perform fetch food habits database operation!", exc_info=True
             )
-            resp.text = json.dumps({"error": "The server could not fetch the food habits."})
+            resp.text = json.dumps(
+                {"error": "The server could not fetch the food habits."}
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
@@ -244,9 +246,12 @@ class FoodResource(Resource):
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
-                "Could not perform update food habits database operation!", exc_info=True
+                "Could not perform update food habits database operation!",
+                exc_info=True,
             )
-            resp.text = json.dumps({"error": "The server could not update the food habits."})
+            resp.text = json.dumps(
+                {"error": "The server could not update the food habits."}
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 

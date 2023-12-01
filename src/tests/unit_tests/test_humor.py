@@ -100,10 +100,12 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
     ],
 )
 def test_update(client, body, status_code, uow: AbstractUnitOfWork):
-    humor_params = {"date":"2012-12-21",
-        "value":"1",
-        "description":"Humor for updating",
-        "health_based":True}
+    humor_params = {
+        "date": "2012-12-21",
+        "value": "1",
+        "description": "Humor for updating",
+        "health_based": True,
+    }
     humor = Humor(**humor_params)
     humor_id = None
     with uow:
@@ -119,7 +121,9 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
     if result.status_code < 400:
         humor_params.update(body)
         with uow:
-            assert uow.repository.get_humor_by_date("2012-12-21") == Humor(**humor_params)
+            assert uow.repository.get_humor_by_date("2012-12-21") == Humor(
+                **humor_params
+            )
 
 
 def test_delete(client, uow: AbstractUnitOfWork):

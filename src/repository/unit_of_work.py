@@ -46,9 +46,7 @@ class AbstractUnitOfWork(ABC):
 
 
 class SQLAlchemyUnitOfWork(AbstractUnitOfWork):
-    def __init__(
-        self, session: Callable[[], Session] = DEFAULT_SESSION
-    ) -> None:
+    def __init__(self, session: Callable[[], Session] = DEFAULT_SESSION) -> None:
         self.session = session
 
     def __enter__(self) -> AbstractUnitOfWork:

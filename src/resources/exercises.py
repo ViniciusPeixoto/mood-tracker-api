@@ -224,7 +224,9 @@ class ExercisesResource(Resource):
             detailedLogger.error(
                 "Could not perform fetch exercises database operation!", exc_info=True
             )
-            resp.text = json.dumps({"error": "The server could not fetch the exercises."})
+            resp.text = json.dumps(
+                {"error": "The server could not fetch the exercises."}
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
@@ -253,7 +255,9 @@ class ExercisesResource(Resource):
             detailedLogger.error(
                 "Could not perform update exercises database operation!", exc_info=True
             )
-            resp.text = json.dumps({"error": "The server could not update the exercises."})
+            resp.text = json.dumps(
+                {"error": "The server could not update the exercises."}
+            )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 

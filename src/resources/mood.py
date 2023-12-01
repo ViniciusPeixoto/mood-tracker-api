@@ -373,8 +373,7 @@ class MoodResource(Resource):
         }
         try:
             mood_params = {
-                key: params_classes.get(key)(**body.get(key))
-                for key in body
+                key: params_classes.get(key)(**body.get(key)) for key in body
             }
         except TypeError as e:
             detailedLogger.warning("Missing Mood parameter.")
@@ -387,7 +386,9 @@ class MoodResource(Resource):
             for key in mood_params:
                 update_function = getattr(self.uow.repository, f"update_{key}")
                 update_param = getattr(mood, key)
-                simpleLogger.debug(f"Updating {key.replace('_', ' ')} from database using id.")
+                simpleLogger.debug(
+                    f"Updating {key.replace('_', ' ')} from database using id."
+                )
                 update_function(update_param, body[key])
             self.uow.commit()
         except Exception as e:

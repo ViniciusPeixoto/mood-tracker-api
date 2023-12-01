@@ -89,9 +89,10 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
     ],
 )
 def test_update(client, body, status_code, uow: AbstractUnitOfWork):
-    food_habits_params = {"date":"2012-12-21",
-        "value":"1",
-        "description":"Food for updating"
+    food_habits_params = {
+        "date": "2012-12-21",
+        "value": "1",
+        "description": "Food for updating",
     }
     food_habits = Food(**food_habits_params)
     food_id = None
@@ -108,7 +109,9 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
     if result.status_code < 400:
         food_habits_params.update(body)
         with uow:
-            assert uow.repository.get_food_habits_by_date("2012-12-21") == Food(**food_habits_params)
+            assert uow.repository.get_food_habits_by_date("2012-12-21") == Food(
+                **food_habits_params
+            )
 
 
 def test_delete(client, uow: AbstractUnitOfWork):

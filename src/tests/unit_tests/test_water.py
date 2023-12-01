@@ -74,11 +74,7 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
     "body, status_code",
     [
         (
-            {
-                "milliliters": 10,
-                "description": "eating in the park",
-                "pee": False
-            },
+            {"milliliters": 10, "description": "eating in the park", "pee": False},
             200,
         ),
         (
@@ -100,10 +96,11 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
     ],
 )
 def test_update(client, body, status_code, uow: AbstractUnitOfWork):
-    water_intake_params = {"date":"2012-12-21",
-        "milliliters":"1",
-        "description":"Water for updating",
-        "pee": True
+    water_intake_params = {
+        "date": "2012-12-21",
+        "milliliters": "1",
+        "description": "Water for updating",
+        "pee": True,
     }
     water_intake = Water(**water_intake_params)
     water_intake_id = None
@@ -120,7 +117,9 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
     if result.status_code < 400:
         water_intake_params.update(body)
         with uow:
-            assert uow.repository.get_water_intake_by_date("2012-12-21") == Water(**water_intake_params)
+            assert uow.repository.get_water_intake_by_date("2012-12-21") == Water(
+                **water_intake_params
+            )
 
 
 def test_delete(client, uow: AbstractUnitOfWork):

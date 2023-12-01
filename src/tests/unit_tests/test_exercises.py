@@ -92,9 +92,10 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
     ],
 )
 def test_update(client, body, status_code, uow: AbstractUnitOfWork):
-    exercises_params = {"date":"2012-12-21",
-        "minutes":"1",
-        "description":"Exercises for updating"
+    exercises_params = {
+        "date": "2012-12-21",
+        "minutes": "1",
+        "description": "Exercises for updating",
     }
     exercises = Exercises(**exercises_params)
     exercises_id = None
@@ -111,7 +112,9 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
     if result.status_code < 400:
         exercises_params.update(body)
         with uow:
-            assert uow.repository.get_exercises_by_date("2012-12-21") == Exercises(**exercises_params)
+            assert uow.repository.get_exercises_by_date("2012-12-21") == Exercises(
+                **exercises_params
+            )
 
 
 def test_delete(client, uow: AbstractUnitOfWork):
