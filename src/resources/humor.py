@@ -189,6 +189,70 @@ class HumorResource(Resource):
         resp.status = falcon.HTTP_CREATED
         simpleLogger.info("POST /humor : successful")
 
+    def on_patch(self, req: falcon.Request, resp: falcon.Response, humor_id: int):
+        """
+        Updates a single humor's data using humor's ID
+
+        `PATCH` /humor/{humor_id}
+
+        Args:
+            humor_id: the humor's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `200 OK`: Humor's data successfully updated
+        """
+        simpleLogger.info(f"PATCH /humor/{humor_id}")
+        humor = None
+        try:
+            simpleLogger.debug("Fetching humor from database using id.")
+            humor = self.uow.repository.get_humor_by_id(humor_id)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch humor database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not fetch the humor."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        body = req.stream.read(req.content_length or 0)
+        body = json.loads(body.decode("utf-8"))
+        if not body:
+            simpleLogger.debug("Missing request body for humor.")
+            resp.text = json.dumps({"error": "Missing request body for humor."})
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        allowed_params = ["value", "description", "health_based"]
+        if set(body.keys()).difference(allowed_params):
+            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        try:
+            simpleLogger.debug("Updating humor from database using id.")
+            self.uow.repository.update_humor(humor, body)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform update humor database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not update the humor."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        updated_humor = self.uow.repository.get_humor_by_id(humor_id)
+        resp.text = json.dumps(json.loads(str(updated_humor)))
+        resp.status = falcon.HTTP_OK
+        simpleLogger.info(f"PATCH /humor/{humor_id} : successful")
+
     def on_delete(self, req: falcon.Request, resp: falcon.Response, humor_id: int):
         """
         Deletes a single humor's data using humor's ID

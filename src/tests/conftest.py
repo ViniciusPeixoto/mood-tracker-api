@@ -21,14 +21,35 @@ def set_test_settings() -> None:
 
 @pytest.fixture(scope="session")
 def engine() -> Engine:
-    return create_engine(get_db_uri())
+    engine = create_engine(get_db_uri())
+    yield engine
+    engine.dispose()
 
 
-@pytest.fixture(scope="session")
-def populate_db(engine):
+@pytest.fixture(scope="function")
+def db_session(engine) -> Session:
+    session_factory = sessionmaker(bind=engine)
+    session = session_factory()
+    populate_db(engine, session)
+
+    yield session
+
+    session.close()
+
+
+@pytest.fixture(scope="function")
+def uow(db_session) -> AbstractUnitOfWork:
+    return SQLAlchemyUnitOfWork(session=db_session)
+
+
+@pytest.fixture(scope="function")
+def client(uow) -> testing.TestClient:
+    return testing.TestClient(run(uow))
+
+
+def populate_db(engine, db_session):
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-
     params = {
         "exercises": Exercises(
             minutes=31, description="exercises description for testing"
@@ -68,24 +89,8 @@ def populate_db(engine):
     }
     tables = [*params.values(), Mood(**params), *no_mood_params.values()]
 
-    session = Session(engine)
     for table in tables:
-        session.add(table)
-        session.flush()
+        db_session.add(table)
+        db_session.flush()
 
-    session.commit()
-
-
-@pytest.fixture(scope="session")
-def session_factory(engine, populate_db) -> sessionmaker:
-    yield sessionmaker(bind=engine)
-
-
-@pytest.fixture(scope="session")
-def uow(session_factory) -> AbstractUnitOfWork:
-    return SQLAlchemyUnitOfWork(session_factory=session_factory)
-
-
-@pytest.fixture(scope="session")
-def client(uow) -> testing.TestClient:
-    return testing.TestClient(run(uow))
+    db_session.commit()

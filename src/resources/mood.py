@@ -318,6 +318,92 @@ class MoodResource(Resource):
 
         return Mood(**mood_params)
 
+    def on_patch(self, req: falcon.Request, resp: falcon.Response, mood_id: int):
+        """
+        Updates a single mood's data using mood's ID
+
+        `PATCH` /mood/{mood_id}
+
+        Args:
+            mood_id: the mood's ID
+
+        Responses:
+            `404 Not Found`: No data for given ID
+
+            `500 Server Error`: Database error
+
+            `200 OK`: Humor's data successfully updated
+        """
+        simpleLogger.info(f"PATCH /mood/{mood_id}")
+        mood = None
+        try:
+            simpleLogger.debug("Fetching mood from database using id.")
+            mood = self.uow.repository.get_mood_by_id(mood_id)
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform fetch mood database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not fetch the mood."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        body = req.stream.read(req.content_length or 0)
+        body = json.loads(body.decode("utf-8"))
+        if not body:
+            simpleLogger.debug("Missing request body for mood.")
+            resp.text = json.dumps({"error": "Missing request body for mood."})
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        allowed_params = ["humor", "water_intake", "exercises", "food_habits"]
+        if set(body.keys()).difference(allowed_params):
+            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            resp.text = json.dumps(
+                {"error": "Incorrect parameters in request body for mood."}
+            )
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        params_classes = {
+            "humor": Humor,
+            "water_intake": Water,
+            "exercises": Exercises,
+            "food_habits": Food,
+        }
+        try:
+            mood_params = {
+                key: params_classes.get(key)(**body.get(key)) for key in body
+            }
+        except TypeError as e:
+            detailedLogger.warning("Missing Mood parameter.")
+            resp.text = json.dumps({"error": "Missing Mood parameter."})
+            resp.status = falcon.HTTP_BAD_REQUEST
+            return
+
+        try:
+            simpleLogger.debug("Updating mood from database using id.")
+            for key in mood_params:
+                update_function = getattr(self.uow.repository, f"update_{key}")
+                update_param = getattr(mood, key)
+                simpleLogger.debug(
+                    f"Updating {key.replace('_', ' ')} from database using id."
+                )
+                update_function(update_param, body[key])
+            self.uow.commit()
+        except Exception as e:
+            detailedLogger.error(
+                "Could not perform update mood database operation!", exc_info=True
+            )
+            resp.text = json.dumps({"error": "The server could not update the mood."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        updated_mood = self.uow.repository.get_mood_by_id(mood_id)
+        resp.text = json.dumps(json.loads(str(updated_mood)))
+        resp.status = falcon.HTTP_OK
+        simpleLogger.info(f"PATCH /mood/{mood_id} : successful")
+
     def on_delete(self, req: falcon.Request, resp: falcon.Response, mood_id: int):
         """
         Deletes a single mood's data using mood's ID
