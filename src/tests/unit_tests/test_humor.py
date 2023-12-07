@@ -67,7 +67,7 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
 
     if result.status_code < 400:
         with uow:
-            assert uow.repository.get_humor_by_date("2012-12-21")
+            assert uow.repository.get_humor_by_date("2012-12-21").first()
 
 
 @pytest.mark.parametrize(
@@ -112,7 +112,7 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
         uow.repository.add_humor(humor)
         uow.flush()
 
-        humor_id = uow.repository.get_humor_by_date("2012-12-21").id
+        humor_id = uow.repository.get_humor_by_date("2012-12-21").first().id
 
         result = client.simulate_patch(f"/humor/{humor_id}", json=body)
 
@@ -121,7 +121,7 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
     if result.status_code < 400:
         humor_params.update(body)
         with uow:
-            assert uow.repository.get_humor_by_date("2012-12-21") == Humor(
+            assert uow.repository.get_humor_by_date("2012-12-21").first() == Humor(
                 **humor_params
             )
 
@@ -138,10 +138,37 @@ def test_delete(client, uow: AbstractUnitOfWork):
         uow.repository.add_humor(humor)
         uow.flush()
 
-        humor_id = uow.repository.get_humor_by_date("2012-12-21").id
+        humor_id = uow.repository.get_humor_by_date("2012-12-21").first().id
 
         result = client.simulate_delete(f"/humor/{humor_id}")
     assert result.status_code == 204
 
     with uow:
         assert not uow.repository.get_humor_by_id(humor_id)
+
+
+def test_delete_date(client, uow: AbstractUnitOfWork):
+    humors = [
+        Humor(
+            date="2012-12-21",
+            value="1",
+            description="Humor for deletion",
+            health_based=True,
+        ),
+        Humor(
+            date="2012-12-21",
+            value="1",
+            description="Humor for deletion",
+            health_based=True,
+        )
+    ]
+    with uow:
+        for humor in humors:
+            uow.repository.add_humor(humor)
+        uow.flush()
+
+        result = client.simulate_delete(f"/humor/date/2012-12-21")
+    assert result.status_code == 204
+
+    with uow:
+        assert not uow.repository.get_humor_by_date("2012-12-21").first()
