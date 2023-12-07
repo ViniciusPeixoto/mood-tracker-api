@@ -45,6 +45,7 @@ class ExercisesResource(Resource):
         """
         simpleLogger.info(f"GET /exercises/{exercises_id}")
         exercises = None
+
         try:
             simpleLogger.debug("Fetching exercises from database using id.")
             exercises = self.uow.repository.get_exercises_by_id(exercises_id)
@@ -57,6 +58,7 @@ class ExercisesResource(Resource):
                 {"error": "The server could not fetch the exercise."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
 
         if not exercises:
             simpleLogger.debug(f"No Exercises data with id {exercises_id}.")
@@ -74,12 +76,12 @@ class ExercisesResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, exercises_date: str
     ):
         """
-        Retrieves a single exercise's data using exercise's creation date
+        Retrieves all exercises' data using exercises' creation date
 
         `GET` /exercises/date/{exercises_date}
 
         Args:
-            exercises_date: the exercise's creation date
+            exercises_date: the exercises' creation date
 
         Responses:
             `400 Bad Request`: Date could not be parsed
@@ -88,10 +90,11 @@ class ExercisesResource(Resource):
 
             `500 Server Error`: Database error
 
-            `200 OK`: Exercise's data successfully retrieved
+            `200 OK`: Exercises' data successfully retrieved
         """
         simpleLogger.info(f"GET /exercises/date/{exercises_date}")
         exercises = None
+
         try:
             simpleLogger.debug("Formatting the date for exercise.")
             exercises_date = datetime.strptime(exercises_date, "%Y-%m-%d").date()
@@ -106,6 +109,7 @@ class ExercisesResource(Resource):
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             simpleLogger.debug("Fetching exercises from database using date.")
             exercises = self.uow.repository.get_exercises_by_date(exercises_date)
@@ -115,12 +119,12 @@ class ExercisesResource(Resource):
                 "Could not perform fetch exercises database operation!", exc_info=True
             )
             resp.text = json.dumps(
-                {"error": "The server could not fetch the exercise."}
+                {"error": "The server could not fetch the exercises."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        if not exercises:
+        if not exercises.first():
             simpleLogger.debug(f"No Exercises data in date {exercises_date}.")
             resp.text = json.dumps(
                 {"error": f"No Exercises data in date {exercises_date}."}
@@ -128,7 +132,9 @@ class ExercisesResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.text = json.dumps(json.loads(str(exercises)))
+        all_exercises = {exercise.id: str(exercise) for exercise in exercises.all()}
+
+        resp.text = json.dumps(all_exercises)
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"GET /exercises/date/{exercises_date} : successful")
 
@@ -172,6 +178,7 @@ class ExercisesResource(Resource):
             resp.text = json.dumps({"error": "Missing Exercises parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             exercises = Exercises(**body)
         except Exception as e:
@@ -183,6 +190,7 @@ class ExercisesResource(Resource):
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
+
         try:
             simpleLogger.debug("Trying to add Exercises data to database.")
             self.uow.repository.add_exercises(exercises)
@@ -216,6 +224,7 @@ class ExercisesResource(Resource):
         """
         simpleLogger.info(f"PATCH /exercises/{exercises_id}")
         exercises = None
+
         try:
             simpleLogger.debug("Fetching exercises from database using id.")
             exercises = self.uow.repository.get_exercises_by_id(exercises_id)
@@ -262,6 +271,7 @@ class ExercisesResource(Resource):
             return
 
         updated_exercises = self.uow.repository.get_exercises_by_id(exercises_id)
+
         resp.text = json.dumps(json.loads(str(updated_exercises)))
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"PATCH /exercises/{exercises_id} : successful")
@@ -284,6 +294,7 @@ class ExercisesResource(Resource):
         """
         simpleLogger.info(f"DELETE /exercises/{exercises_id}")
         exercise = None
+
         try:
             simpleLogger.debug("Fetching exercise from database using id.")
             exercise = self.uow.repository.get_exercises_by_id(exercises_id)
@@ -324,15 +335,15 @@ class ExercisesResource(Resource):
         simpleLogger.info(f"DELETE /exercises/{exercises_id} : successful")
 
     def on_delete_date(
-        self, req: falcon.Request, resp: falcon.Response, exercise_date: str
+        self, req: falcon.Request, resp: falcon.Response, exercises_date: str
     ):
         """
-        Deletes a single exercise's data using exercise's creation date
+        Deletes all exercises' data using exercises' creation date
 
-        `DELETE` /exercises/date/{exercise_date}
+        `DELETE` /exercises/date/{exercises_date}
 
         Args:
-            exercise_date: the exercise's creation date
+            exercises_date: the exercises' creation date
 
         Responses:
             `400 Bad Request`: Date could not be parsed
@@ -341,25 +352,27 @@ class ExercisesResource(Resource):
 
             `500 Server Error`: Database error
 
-            `204 No Content`: Exercise's data successfully deleted
+            `204 No Content`: Exercises' data successfully deleted
         """
-        simpleLogger.info(f"DELETE /exercises/date/{exercise_date}")
-        exercise = None
+        simpleLogger.info(f"DELETE /exercises/date/{exercises_date}")
+        exercises = None
+
         try:
             simpleLogger.debug("Formatting the date for exercise.")
-            exercise_date = datetime.strptime(exercise_date, "%Y-%m-%d").date()
+            exercises_date = datetime.strptime(exercises_date, "%Y-%m-%d").date()
         except Exception as e:
-            detailedLogger.warning(f"Date {exercise_date} is malformed!", exc_info=True)
+            detailedLogger.warning(f"Date {exercises_date} is malformed!", exc_info=True)
             resp.text = json.dumps(
                 {
-                    "error": f"Date {exercise_date} is malformed! Correct format is YYYY-MM-DD."
+                    "error": f"Date {exercises_date} is malformed! Correct format is YYYY-MM-DD."
                 }
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             simpleLogger.debug("Fetching exercise from database using date.")
-            exercise = self.uow.repository.get_exercises_by_date(exercise_date)
+            exercises = self.uow.repository.get_exercises_by_date(exercises_date)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
@@ -371,27 +384,28 @@ class ExercisesResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        if not exercise:
-            simpleLogger.debug(f"No Exercise data in date {exercise_date}.")
+        if not exercises.first():
+            simpleLogger.debug(f"No Exercise data in date {exercises_date}.")
             resp.text = json.dumps(
-                {"error": f"No Exercise data in date {exercise_date}."}
+                {"error": f"No Exercise data in date {exercises_date}."}
             )
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
         try:
-            simpleLogger.debug("Deleting exercise from database using date.")
-            self.uow.repository.delete_exercises(exercise)
+            simpleLogger.debug("Deleting exercises from database using date.")
+            for exercise in exercises.all():
+                self.uow.repository.delete_exercises(exercise)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
                 "Could not perform delete exercise database operation!", exc_info=True
             )
             resp.text = json.dumps(
-                {"error": "The server could not delete the exercise."}
+                {"error": "The server could not delete the exercises."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
         resp.status = falcon.HTTP_NO_CONTENT
-        simpleLogger.info(f"DELETE /exercises/date/{exercise_date} : successful")
+        simpleLogger.info(f"DELETE /exercises/date/{exercises_date} : successful")

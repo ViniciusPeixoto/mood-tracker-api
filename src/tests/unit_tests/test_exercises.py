@@ -61,7 +61,7 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
 
     if result.status_code < 400:
         with uow:
-            assert uow.repository.get_exercises_by_date("2012-12-21")
+            assert uow.repository.get_exercises_by_date("2012-12-21").first()
 
 
 @pytest.mark.parametrize(
@@ -103,7 +103,7 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
         uow.repository.add_exercises(exercises)
         uow.flush()
 
-        exercises_id = uow.repository.get_exercises_by_date("2012-12-21").id
+        exercises_id = uow.repository.get_exercises_by_date("2012-12-21").first().id
 
         result = client.simulate_patch(f"/exercises/{exercises_id}", json=body)
 
@@ -112,7 +112,7 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
     if result.status_code < 400:
         exercises_params.update(body)
         with uow:
-            assert uow.repository.get_exercises_by_date("2012-12-21") == Exercises(
+            assert uow.repository.get_exercises_by_date("2012-12-21").first() == Exercises(
                 **exercises_params
             )
 
@@ -126,10 +126,31 @@ def test_delete(client, uow: AbstractUnitOfWork):
         uow.repository.add_exercises(exercise)
         uow.flush()
 
-        exercise_id = uow.repository.get_exercises_by_date("2012-12-21").id
+        exercise_id = uow.repository.get_exercises_by_date("2012-12-21").first().id
 
         result = client.simulate_delete(f"/exercises/{exercise_id}")
     assert result.status_code == 204
 
     with uow:
         assert not uow.repository.get_exercises_by_id(exercise_id)
+
+
+def test_delete_date(client, uow: AbstractUnitOfWork):
+    exercises = [
+        Exercises(
+        date="2012-12-21", minutes=10, description="First Exercise for deletion"
+        ),
+        Exercises(
+        date="2012-12-21", minutes=15, description="Second Exercise for deletion"
+        ),
+    ]
+    with uow:
+        for exercise in exercises:
+            uow.repository.add_exercises(exercise)
+        uow.flush()
+
+        result = client.simulate_delete(f"/exercises/date/2012-12-21")
+    assert result.status_code == 204
+
+    with uow:
+        assert not uow.repository.get_exercises_by_date("2012-12-21").first()
