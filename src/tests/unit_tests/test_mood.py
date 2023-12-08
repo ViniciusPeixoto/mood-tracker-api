@@ -121,7 +121,25 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
 
     if result.status_code < 400:
         with uow:
-            assert uow.repository.get_mood_by_date("2012-12-21")
+            assert uow.repository.get_mood_by_date("2012-12-21").first()
+
+
+@pytest.mark.parametrize(
+    "mood_date, status_code",
+    [
+        (str(date.today() - timedelta(days=1)), 201),
+        ("21-12-2012", 400),
+        ("2012-12-21", 404),
+    ],
+)
+def test_post_date(client, mood_date, status_code, uow: AbstractUnitOfWork):
+    result = client.simulate_post(f"/mood/date/{mood_date}")
+
+    assert result.status_code == status_code
+
+    if result.status_code < 400:
+        with uow:
+            assert uow.repository.get_mood_by_date(mood_date).first()
 
 
 @pytest.mark.parametrize(
@@ -226,7 +244,7 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
         uow.repository.add_mood(mood)
         uow.flush()
 
-        mood_id = uow.repository.get_mood_by_date("2012-12-21").id
+        mood_id = uow.repository.get_mood_by_date("2012-12-21").first().id
 
         result = client.simulate_patch(f"/mood/{mood_id}", json=body)
 
@@ -279,7 +297,7 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
         mood_params.update(mood_updated_params)
         with uow:
             expected = Mood(**mood_params)
-            updated = uow.repository.get_mood_by_date("2012-12-21")
+            updated = uow.repository.get_mood_by_date("2012-12-21").first()
             assert updated == expected
 
 
@@ -312,10 +330,72 @@ def test_delete(client, uow: AbstractUnitOfWork):
         uow.repository.add_mood(mood)
         uow.flush()
 
-        mood_id = uow.repository.get_mood_by_date("2012-12-21").id
+        mood_id = uow.repository.get_mood_by_date("2012-12-21").first().id
 
         result = client.simulate_delete(f"/mood/{mood_id}")
     assert result.status_code == 204
 
     with uow:
         assert not uow.repository.get_mood_by_id(mood_id)
+
+
+def test_delete_date(client, uow: AbstractUnitOfWork):
+    water_intake = Water(
+        date="2012-12-21",
+        milliliters="1",
+        description="Water Intake for deletion",
+        pee=True,
+    )
+    food = Food(date="2012-12-21", value="1", description="Food for deletion")
+    exercise = Exercises(
+        date="2012-12-21", minutes=10, description="Exercise for deletion"
+    )
+    humor = Humor(
+        date="2012-12-21",
+        value="1",
+        description="Humor for deletion",
+        health_based=True,
+    )
+    water_intake2 = Water(
+        date="2012-12-21",
+        milliliters="11",
+        description="Water Intake for deletion",
+        pee=True,
+    )
+    food2 = Food(date="2012-12-21", value="10", description="Food for deletion")
+    exercise2 = Exercises(
+        date="2012-12-21", minutes=11, description="Exercise for deletion"
+    )
+    humor2 = Humor(
+        date="2012-12-21",
+        value="10",
+        description="Humor for deletion",
+        health_based=True,
+    )
+    moods = [
+        Mood(
+            date="2012-12-21",
+            humor=humor,
+            food_habits=food,
+            exercises=exercise,
+            water_intake=water_intake,
+        ),
+        Mood(
+            date="2012-12-21",
+            humor=humor2,
+            food_habits=food2,
+            exercises=exercise2,
+            water_intake=water_intake2,
+        )
+    ]
+
+    with uow:
+        for mood in moods:
+            uow.repository.add_mood(mood)
+        uow.flush()
+
+        result = client.simulate_delete(f"/mood/date/2012-12-21")
+    assert result.status_code == 204
+
+    with uow:
+        assert not uow.repository.get_mood_by_date("2012-12-21").first()
