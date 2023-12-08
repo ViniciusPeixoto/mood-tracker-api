@@ -46,6 +46,7 @@ class HumorResource(Resource):
         """
         simpleLogger.info(f"GET /humor/{humor_id}")
         humor = None
+
         try:
             simpleLogger.debug("Fetching humor from database using id.")
             humor = self.uow.repository.get_humor_by_id(humor_id)
@@ -70,12 +71,12 @@ class HumorResource(Resource):
 
     def on_get_date(self, req: falcon.Request, resp: falcon.Response, humor_date: str):
         """
-        Retrieves a single humor's data using humor's creation date
+        Retrieves all humors' data using humors' creation date
 
         `GET` /humor/date/{humor_date}
 
         Args:
-            humor_date: the humor's creation date
+            humor_date: the humors' creation date
 
         Responses:
             `400 Bad Request`: Date could not be parsed
@@ -84,10 +85,11 @@ class HumorResource(Resource):
 
             `500 Server Error`: Database error
 
-            `200 OK`: Humor's data successfully retrieved
+            `200 OK`: Humors' data successfully retrieved
         """
         simpleLogger.info(f"GET /humor/date/{humor_date}")
-        humor = None
+        humors = None
+
         try:
             simpleLogger.debug("Formatting the date for humor.")
             humor_date = datetime.strptime(humor_date, "%Y-%m-%d").date()
@@ -100,9 +102,10 @@ class HumorResource(Resource):
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             simpleLogger.debug("Fetching humor from database using date.")
-            humor = self.uow.repository.get_humor_by_date(humor_date)
+            humors = self.uow.repository.get_humor_by_date(humor_date)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
@@ -112,13 +115,15 @@ class HumorResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        if not humor:
+        if not humors.first():
             simpleLogger.debug(f"No Humor data in date {humor_date}.")
             resp.text = json.dumps({"error": f"No Humor data in date {humor_date}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.text = json.dumps(json.loads(str(humor)))
+        all_humors = {humor.id: json.loads(str(humor)) for humor in humors}
+
+        resp.text = json.dumps(all_humors)
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"GET /humor/date/{humor_date} : successful")
 
@@ -163,6 +168,7 @@ class HumorResource(Resource):
             resp.text = json.dumps({"error": "Missing Humor parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             humor = Humor(**body)
         except Exception as e:
@@ -174,6 +180,7 @@ class HumorResource(Resource):
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
+
         try:
             simpleLogger.debug("Trying to add Humor data to database.")
             self.uow.repository.add_humor(humor)
@@ -207,6 +214,7 @@ class HumorResource(Resource):
         """
         simpleLogger.info(f"PATCH /humor/{humor_id}")
         humor = None
+
         try:
             simpleLogger.debug("Fetching humor from database using id.")
             humor = self.uow.repository.get_humor_by_id(humor_id)
@@ -271,6 +279,7 @@ class HumorResource(Resource):
         """
         simpleLogger.info(f"DELETE /humor/{humor_id}")
         humor = None
+
         try:
             simpleLogger.debug("Fetching humor from database using id.")
             humor = self.uow.repository.get_humor_by_id(humor_id)
@@ -308,12 +317,12 @@ class HumorResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, humor_date: str
     ):
         """
-        Deletes a single humor's data using humor's creation date
+        Deletes all humors' data using humors' creation date
 
         `DELETE` /humor/date/{humor_date}
 
         Args:
-            humor_date: the humor's creation date
+            humor_date: the humors' creation date
 
         Responses:
             `400 Bad Request`: Date could not be parsed
@@ -322,10 +331,11 @@ class HumorResource(Resource):
 
             `500 Server Error`: Database error
 
-            `204 No Content`: Humor's data successfully deleted
+            `204 No Content`: Humors' data successfully deleted
         """
         simpleLogger.info(f"DELETE /humor/date/{humor_date}")
-        humor = None
+        humors = None
+
         try:
             simpleLogger.debug("Formatting the date for humor.")
             humor_date = datetime.strptime(humor_date, "%Y-%m-%d").date()
@@ -338,9 +348,10 @@ class HumorResource(Resource):
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
-            simpleLogger.debug("Fetching humor from database using date.")
-            humor = self.uow.repository.get_humor_by_date(humor_date)
+            simpleLogger.debug("Fetching humors from database using date.")
+            humors = self.uow.repository.get_humor_by_date(humor_date)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
@@ -350,7 +361,7 @@ class HumorResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        if not humor:
+        if not humors.first():
             simpleLogger.debug(f"No Humor data in date {humor_date}.")
             resp.text = json.dumps({"error": f"No Humor data in date {humor_date}."})
             resp.status = falcon.HTTP_NOT_FOUND
@@ -358,13 +369,14 @@ class HumorResource(Resource):
 
         try:
             simpleLogger.debug("Deleting humor from database using date.")
-            self.uow.repository.delete_humor(humor)
+            for humor in humors:
+                self.uow.repository.delete_humor(humor)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
-                "Could not perform delete humor database operation!", exc_info=True
+                "Could not perform delete humors database operation!", exc_info=True
             )
-            resp.text = json.dumps({"error": "The server could not delete the humor."})
+            resp.text = json.dumps({"error": "The server could not delete the humors."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 

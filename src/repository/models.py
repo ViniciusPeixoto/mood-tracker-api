@@ -14,7 +14,7 @@ class Humor(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date(), unique=True
+        Date, default=datetime.today().date()
     )
     value: Mapped[int] = mapped_column(Integer, default=5)
     description: Mapped[Optional[str]]
@@ -52,7 +52,7 @@ class Water(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date(), unique=True
+        Date, default=datetime.today().date()
     )
     milliliters: Mapped[int]
     description: Mapped[Optional[str]]
@@ -90,7 +90,7 @@ class Exercises(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date(), unique=True
+        Date, default=datetime.today().date()
     )
     minutes: Mapped[int] = mapped_column(Integer, default=0)
     description: Mapped[Optional[str]]
@@ -125,7 +125,7 @@ class Food(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date(), unique=True
+        Date, default=datetime.today().date()
     )
     value: Mapped[int]
     description: Mapped[str] = mapped_column(String(256))
@@ -160,7 +160,7 @@ class Mood(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date(), unique=True
+        Date, default=datetime.today().date()
     )
     humor_id: Mapped[int] = mapped_column(ForeignKey("user_humor.id"))
     water_intake_id: Mapped[int] = mapped_column(ForeignKey("user_water_intake.id"))

@@ -45,6 +45,7 @@ class FoodResource(Resource):
         """
         simpleLogger.info(f"GET /food/{food_id}")
         food = None
+
         try:
             simpleLogger.debug("Fetching food habits from database using id.")
             food = self.uow.repository.get_food_habits_by_id(food_id)
@@ -57,6 +58,7 @@ class FoodResource(Resource):
                 {"error": "The server could not fetch the food habit."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
 
         if not food:
             simpleLogger.debug(f"No Food data with id {food_id}.")
@@ -70,12 +72,12 @@ class FoodResource(Resource):
 
     def on_get_date(self, req: falcon.Request, resp: falcon.Response, food_date: str):
         """
-        Retrieves a single food habit's data using food habit's creation date
+        Retrieves all food habits' data using food habits' creation date
 
         `GET` /food/date/{food_date}
 
         Args:
-            food_date: the food habit's creation date
+            food_date: the food habits' creation date
 
         Responses:
             `400 Bad Request`: Date could not be parsed
@@ -84,10 +86,11 @@ class FoodResource(Resource):
 
             `500 Server Error`: Database error
 
-            `200 OK`: Food habit's data successfully retrieved
+            `200 OK`: Food habits' data successfully retrieved
         """
         simpleLogger.info(f"GET /food/date/{food_date}")
-        food = None
+        foods = None
+
         try:
             simpleLogger.debug("Formatting the date for food.")
             food_date = datetime.strptime(food_date, "%Y-%m-%d").date()
@@ -100,25 +103,28 @@ class FoodResource(Resource):
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             simpleLogger.debug("Fetching food habits from database using date.")
-            food = self.uow.repository.get_food_habits_by_date(food_date)
+            foods = self.uow.repository.get_food_habits_by_date(food_date)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
-                "Could not perform fetch food database operation!", exc_info=True
+                "Could not perform fetch foods database operation!", exc_info=True
             )
             resp.text = json.dumps({"error": "The server could not fetch the food."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        if not food:
+        if not foods.first():
             simpleLogger.debug(f"No Food data in date {food_date}.")
             resp.text = json.dumps({"error": f"No Food data in date {food_date}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.text = json.dumps(json.loads(str(food)))
+        all_foods = {food.id: json.loads(str(food)) for food in foods}
+
+        resp.text = json.dumps(all_foods)
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"GET /food/date/{food_date} : successful")
 
@@ -162,6 +168,7 @@ class FoodResource(Resource):
             resp.text = json.dumps({"error": "Missing Food parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             food = Food(**body)
         except Exception as e:
@@ -173,6 +180,7 @@ class FoodResource(Resource):
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
+
         try:
             simpleLogger.debug("Trying to add Food data to database.")
             self.uow.repository.add_food_habits(food)
@@ -209,6 +217,7 @@ class FoodResource(Resource):
         """
         simpleLogger.info(f"PATCH /food/{food_id}")
         food_habits = None
+
         try:
             simpleLogger.debug("Fetching food habits from database using id.")
             food_habits = self.uow.repository.get_food_habits_by_id(food_id)
@@ -278,6 +287,7 @@ class FoodResource(Resource):
         """
         simpleLogger.info(f"DELETE /food/{food_id}")
         food = None
+
         try:
             simpleLogger.debug("Fetching food from database using id.")
             food = self.uow.repository.get_food_habits_by_id(food_id)
@@ -315,12 +325,12 @@ class FoodResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, food_date: str
     ):
         """
-        Deletes a single food's data using food's creation date
+        Deletes all food habits' data using food habits' creation date
 
         `DELETE` /food/date/{food_date}
 
         Args:
-            food_date: the food's creation date
+            food_date: the food habits' creation date
 
         Responses:
             `400 Bad Request`: Date could not be parsed
@@ -329,10 +339,11 @@ class FoodResource(Resource):
 
             `500 Server Error`: Database error
 
-            `204 No Content`: Food's data successfully deleted
+            `204 No Content`: Foods' data successfully deleted
         """
         simpleLogger.info(f"DELETE /food/date/{food_date}")
-        food = None
+        foods = None
+
         try:
             simpleLogger.debug("Formatting the date for food.")
             food_date = datetime.strptime(food_date, "%Y-%m-%d").date()
@@ -345,9 +356,10 @@ class FoodResource(Resource):
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
-            simpleLogger.debug("Fetching food from database using date.")
-            food = self.uow.repository.get_food_habits_by_date(food_date)
+            simpleLogger.debug("Fetching foods from database using date.")
+            foods = self.uow.repository.get_food_habits_by_date(food_date)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
@@ -357,21 +369,22 @@ class FoodResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        if not food:
+        if not foods.first():
             simpleLogger.debug(f"No Food data in date {food_date}.")
             resp.text = json.dumps({"error": f"No Food data in date {food_date}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
         try:
-            simpleLogger.debug("Deleting food from database using date.")
-            self.uow.repository.delete_food_habits(food)
+            simpleLogger.debug("Deleting foods from database using date.")
+            for food in foods:
+                self.uow.repository.delete_food_habits(food)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
-                "Could not perform delete food database operation!", exc_info=True
+                "Could not perform delete foods database operation!", exc_info=True
             )
-            resp.text = json.dumps({"error": "The server could not delete the food."})
+            resp.text = json.dumps({"error": "The server could not delete the foods."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 

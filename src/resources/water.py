@@ -46,6 +46,7 @@ class WaterResource(Resource):
         """
         simpleLogger.info(f"GET /water-intake/{water_intake_id}")
         water_intake = None
+
         try:
             simpleLogger.debug("Fetching water intake from database using id.")
             water_intake = self.uow.repository.get_water_intake_by_id(water_intake_id)
@@ -59,6 +60,7 @@ class WaterResource(Resource):
                 {"error": "The server could not fetch the water intake."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
 
         if not water_intake:
             simpleLogger.debug(f"No Water data with id {water_intake_id}.")
@@ -76,12 +78,12 @@ class WaterResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, water_intake_date: str
     ):
         """
-        Retrieves a single water intake's data using water intake's creation date
+        Retrieves all water intakes' data using water intakes' creation date
 
         `GET` /water-intake/date/{water_intake_date}
 
         Args:
-            water_intake_date: the water intake's creation date
+            water_intake_date: the water intakes' creation date
 
         Responses:
             `400 Bad Request`: Date could not be parsed
@@ -90,10 +92,11 @@ class WaterResource(Resource):
 
             `500 Server Error`: Database error
 
-            `200 OK`: Water intake's data successfully retrieved
+            `200 OK`: Water intakes' data successfully retrieved
         """
         simpleLogger.info(f"GET /water-intake/date/{water_intake_date}")
-        water_intake = None
+        water_intakes = None
+
         try:
             simpleLogger.debug("Formatting the date for water intake.")
             water_intake_date = datetime.strptime(water_intake_date, "%Y-%m-%d").date()
@@ -108,9 +111,10 @@ class WaterResource(Resource):
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             simpleLogger.debug("Fetching water intake from database using date.")
-            water_intake = self.uow.repository.get_water_intake_by_date(
+            water_intakes = self.uow.repository.get_water_intake_by_date(
                 water_intake_date
             )
             self.uow.commit()
@@ -125,7 +129,7 @@ class WaterResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        if not water_intake:
+        if not water_intakes.first():
             simpleLogger.debug(f"No Water data in date {water_intake_date}.")
             resp.text = json.dumps(
                 {"error": f"No Water data in date {water_intake_date}."}
@@ -133,7 +137,9 @@ class WaterResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.text = json.dumps(json.loads(str(water_intake)))
+        all_water_intakes = {water_intake.id: json.loads(str(water_intake)) for water_intake in water_intakes}
+
+        resp.text = json.dumps(all_water_intakes)
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"GET /water-intake/date/{water_intake_date} : successful")
 
@@ -178,6 +184,7 @@ class WaterResource(Resource):
             resp.text = json.dumps({"error": "Missing Water parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             water_intake = Water(**body)
         except Exception as e:
@@ -191,6 +198,7 @@ class WaterResource(Resource):
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
+
         try:
             simpleLogger.debug("Trying to add Water data to database.")
             self.uow.repository.add_water_intake(water_intake)
@@ -229,6 +237,7 @@ class WaterResource(Resource):
         """
         simpleLogger.info(f"PATCH /water-intake/{water_intake_id}")
         water_intake = None
+
         try:
             simpleLogger.debug("Fetching water intake from database using id.")
             water_intake = self.uow.repository.get_water_intake_by_id(water_intake_id)
@@ -303,6 +312,7 @@ class WaterResource(Resource):
         """
         simpleLogger.info(f"DELETE /water-intake/{water_intake_id}")
         water_intake = None
+
         try:
             simpleLogger.debug("Fetching water_intake from database using id.")
             water_intake = self.uow.repository.get_water_intake_by_id(water_intake_id)
@@ -348,12 +358,12 @@ class WaterResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, water_intake_date: str
     ):
         """
-        Deletes a single water_intake's data using water_intake's creation date
+        Deletes all water_intakes' data using water_intakes' creation date
 
         `DELETE` /water-intake/date/{water_intake_date}
 
         Args:
-            water_intake_date: the water_intake's creation date
+            water_intake_date: the water_intakes' creation date
 
         Responses:
             `400 Bad Request`: Date could not be parsed
@@ -362,10 +372,11 @@ class WaterResource(Resource):
 
             `500 Server Error`: Database error
 
-            `204 No Content`: Water Intake's data successfully deleted
+            `204 No Content`: Water Intakes' data successfully deleted
         """
         simpleLogger.info(f"DELETE /water-intake/date/{water_intake_date}")
-        water_intake = None
+        water_intakes = None
+
         try:
             simpleLogger.debug("Formatting the date for water_intake.")
             water_intake_date = datetime.strptime(water_intake_date, "%Y-%m-%d").date()
@@ -380,9 +391,10 @@ class WaterResource(Resource):
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             simpleLogger.debug("Fetching water_intake from database using date.")
-            water_intake = self.uow.repository.get_water_intake_by_date(
+            water_intakes = self.uow.repository.get_water_intake_by_date(
                 water_intake_date
             )
             self.uow.commit()
@@ -397,7 +409,7 @@ class WaterResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        if not water_intake:
+        if not water_intakes.first():
             simpleLogger.debug(f"No Water Intake data in date {water_intake_date}.")
             resp.text = json.dumps(
                 {"error": f"No Water Intake data in date {water_intake_date}."}
@@ -407,7 +419,8 @@ class WaterResource(Resource):
 
         try:
             simpleLogger.debug("Deleting water_intake from database using date.")
-            self.uow.repository.delete_water_intake(water_intake)
+            for water_intake in water_intakes:
+                self.uow.repository.delete_water_intake(water_intake)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(

@@ -58,7 +58,7 @@ def test_post(client, body, status_code, uow: AbstractUnitOfWork):
 
     if result.status_code < 400:
         with uow:
-            assert uow.repository.get_food_habits_by_date("2012-12-21")
+            assert uow.repository.get_food_habits_by_date("2012-12-21").first()
 
 
 @pytest.mark.parametrize(
@@ -96,11 +96,12 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
     }
     food_habits = Food(**food_habits_params)
     food_id = None
+
     with uow:
         uow.repository.add_food_habits(food_habits)
         uow.flush()
 
-        food_id = uow.repository.get_food_habits_by_date("2012-12-21").id
+        food_id = uow.repository.get_food_habits_by_date("2012-12-21").first().id
 
         result = client.simulate_patch(f"/food/{food_id}", json=body)
 
@@ -109,7 +110,7 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
     if result.status_code < 400:
         food_habits_params.update(body)
         with uow:
-            assert uow.repository.get_food_habits_by_date("2012-12-21") == Food(
+            assert uow.repository.get_food_habits_by_date("2012-12-21").first() == Food(
                 **food_habits_params
             )
 
@@ -117,14 +118,33 @@ def test_update(client, body, status_code, uow: AbstractUnitOfWork):
 def test_delete(client, uow: AbstractUnitOfWork):
     food = Food(date="2012-12-21", value="1", description="Food for deletion")
     food_id = None
+
     with uow:
         uow.repository.add_food_habits(food)
         uow.flush()
 
-        food_id = uow.repository.get_food_habits_by_date("2012-12-21").id
+        food_id = uow.repository.get_food_habits_by_date("2012-12-21").first().id
 
         result = client.simulate_delete(f"/food/{food_id}")
     assert result.status_code == 204
 
     with uow:
         assert not uow.repository.get_food_habits_by_id(food_id)
+
+
+def test_delete_date(client, uow: AbstractUnitOfWork):
+    foods = [
+        Food(date="2012-12-21", value="1", description="First Food for deletion"),
+        Food(date="2012-12-21", value="2", description="Second Food for deletion")
+    ]
+
+    with uow:
+        for food in foods:
+            uow.repository.add_food_habits(food)
+        uow.flush()
+
+        result = client.simulate_delete(f"/food/date/2012-12-21")
+    assert result.status_code == 204
+
+    with uow:
+        assert not uow.repository.get_food_habits_by_date("2012-12-21").first()

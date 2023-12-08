@@ -50,6 +50,7 @@ class MoodResource(Resource):
         """
         simpleLogger.info(f"GET /mood/{mood_id}")
         mood = None
+
         try:
             simpleLogger.debug("Fetching mood from database using id.")
             mood = self.uow.repository.get_mood_by_id(mood_id)
@@ -60,6 +61,7 @@ class MoodResource(Resource):
             )
             resp.text = json.dumps({"error": "The server could not fetch the mood."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
 
         if not mood:
             simpleLogger.debug(f"No Mood data with id {mood_id}.")
@@ -73,12 +75,12 @@ class MoodResource(Resource):
 
     def on_get_date(self, req: falcon.Request, resp: falcon.Response, mood_date: str):
         """
-        Retrieves a single mood's data using mood's creation date
+        Retrieves all mood's data using moods' creation date
 
         `GET` /mood/date/{mood_date}
 
         Args:
-            mood_date: the mood's creation date
+            mood_date: the moods' creation date
 
         Responses:
             `400 Bad Request`: Date could not be parsed
@@ -87,10 +89,11 @@ class MoodResource(Resource):
 
             `500 Server Error`: Database error
 
-            `200 OK`: mood's data successfully retrieved
+            `200 OK`: moods' data successfully retrieved
         """
         simpleLogger.info(f"GET /mood/date/{mood_date}")
-        mood = None
+        moods = None
+
         try:
             simpleLogger.debug("Formatting the date for mood.")
             mood_date = datetime.strptime(mood_date, "%Y-%m-%d").date()
@@ -103,9 +106,10 @@ class MoodResource(Resource):
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             simpleLogger.debug("Fetching mood from database using date.")
-            mood = self.uow.repository.get_mood_by_date(mood_date)
+            moods = self.uow.repository.get_mood_by_date(mood_date)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
@@ -115,13 +119,15 @@ class MoodResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        if not mood:
+        if not moods.first():
             simpleLogger.debug(f"No Mood data in date {mood_date}.")
             resp.text = json.dumps({"error": f"No Mood data in date {mood_date}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.text = json.dumps(json.loads(str(mood)))
+        all_moods = {mood.id: json.loads(str(mood)) for mood in moods}
+
+        resp.text = json.dumps(all_moods)
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"GET /mood/date/{mood_date} : successful")
 
@@ -168,6 +174,7 @@ class MoodResource(Resource):
             "exercises": Exercises,
             "food_habits": Food,
         }
+
         try:
             mood_params = {
                 key: params_classes.get(key)(**body.get(key))
@@ -178,6 +185,7 @@ class MoodResource(Resource):
             resp.text = json.dumps({"error": "Missing Mood parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         if body.get("date"):
             mood_params["date"] = body.get("date")
 
@@ -202,6 +210,7 @@ class MoodResource(Resource):
             "food_habits": self.uow.repository.add_food_habits,
             "mood": self.uow.repository.add_mood,
         }
+
         for key in ["humor", "water_intake", "exercises", "food_habits", "mood"]:
             try:
                 simpleLogger.debug(
@@ -242,6 +251,7 @@ class MoodResource(Resource):
             `201 CREATED`: Mood's data successfully added
         """
         simpleLogger.info(f"POST /mood/date/{mood_date}")
+
         try:
             simpleLogger.debug("Formatting the date for post mood.")
             mood_date = datetime.strptime(mood_date, "%Y-%m-%d").date()
@@ -301,22 +311,27 @@ class MoodResource(Resource):
             a Mood instance.
         """
         simpleLogger.info(f"Building Mood with data from {date}")
-        mood_params = {"date": date}
         empty_params = []
+        mood = Mood(date=date)
+
         for param in ["humor", "water_intake", "exercises", "food_habits"]:
             function_name = f"get_{param}_by_date"
             db_function = getattr(self.uow.repository, function_name)
-            param_instance = db_function(date)
-            if param_instance is None:
+
+            param_instances = db_function(date)
+            if not param_instances.first():
                 empty_params.append(param)
-            mood_params[param] = param_instance
+                continue
+
+            for param_instance in param_instances:
+                setattr(mood, param, param_instance)
 
         if empty_params:
             raise ValueError(
                 f"Date {date} does not contain data for params {empty_params}."
             )
 
-        return Mood(**mood_params)
+        return mood
 
     def on_patch(self, req: falcon.Request, resp: falcon.Response, mood_id: int):
         """
@@ -459,12 +474,12 @@ class MoodResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, mood_date: str
     ):
         """
-        Deletes a single mood's data using mood's creation date
+        Deletes all moods' data using moods' creation date
 
         `DELETE` /mood/date/{mood_date}
 
         Args:
-            mood_date: the mood's creation date
+            mood_date: the moods' creation date
 
         Responses:
             `400 Bad Request`: Date could not be parsed
@@ -473,10 +488,11 @@ class MoodResource(Resource):
 
             `500 Server Error`: Database error
 
-            `204 No Content`: Mood's data successfully deleted
+            `204 No Content`: Moods' data successfully deleted
         """
         simpleLogger.info(f"DELETE /mood/date/{mood_date}")
-        mood = None
+        moods = None
+
         try:
             simpleLogger.debug("Formatting the date for mood.")
             mood_date = datetime.strptime(mood_date, "%Y-%m-%d").date()
@@ -491,7 +507,7 @@ class MoodResource(Resource):
             return
         try:
             simpleLogger.debug("Fetching mood from database using date.")
-            mood = self.uow.repository.get_mood_by_date(mood_date)
+            moods = self.uow.repository.get_mood_by_date(mood_date)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
@@ -501,7 +517,7 @@ class MoodResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        if not mood:
+        if not moods.first():
             simpleLogger.debug(f"No Mood data in date {mood_date}.")
             resp.text = json.dumps({"error": f"No Mood data in date {mood_date}."})
             resp.status = falcon.HTTP_NOT_FOUND
@@ -509,13 +525,14 @@ class MoodResource(Resource):
 
         try:
             simpleLogger.debug("Deleting mood from database using date.")
-            self.uow.repository.delete_mood(mood)
+            for mood in moods:
+                self.uow.repository.delete_mood(mood)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
-                "Could not perform delete mood database operation!", exc_info=True
+                "Could not perform delete moods database operation!", exc_info=True
             )
-            resp.text = json.dumps({"error": "The server could not delete the mood."})
+            resp.text = json.dumps({"error": "The server could not delete the moods."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 

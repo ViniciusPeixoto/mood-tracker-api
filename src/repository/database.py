@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, Query
 
 from src.repository.models import Exercises, Food, Humor, Mood, Water
 
@@ -13,7 +13,7 @@ class AbstractRepository(ABC):
     def get_humor_by_id(self, humor_id: int) -> Humor:
         return self._get_humor_by_id(humor_id)
 
-    def get_humor_by_date(self, humor_date: datetime) -> Humor:
+    def get_humor_by_date(self, humor_date: datetime) -> Query[Humor]:
         return self._get_humor_by_date(humor_date)
 
     def update_humor(self, humor: Humor, humor_data: dict) -> None:
@@ -28,7 +28,7 @@ class AbstractRepository(ABC):
     def get_water_intake_by_id(self, water_intake_id: int) -> Water:
         return self._get_water_intake_by_id(water_intake_id)
 
-    def get_water_intake_by_date(self, water_intake_date: datetime) -> Water:
+    def get_water_intake_by_date(self, water_intake_date: datetime) -> Query[Water]:
         return self._get_water_intake_by_date(water_intake_date)
 
     def update_water_intake(self, water_intake: Water, water_intake_data: dict) -> None:
@@ -43,7 +43,7 @@ class AbstractRepository(ABC):
     def get_exercises_by_id(self, exercises_id: int) -> Exercises:
         return self._get_exercises_by_id(exercises_id)
 
-    def get_exercises_by_date(self, exercises_date: datetime) -> Exercises:
+    def get_exercises_by_date(self, exercises_date: datetime) -> Query[Exercises]:
         return self._get_exercises_by_date(exercises_date)
 
     def update_exercises(self, exercises: Exercises, exercises_data: dict) -> None:
@@ -58,7 +58,7 @@ class AbstractRepository(ABC):
     def get_food_habits_by_id(self, food_habits_id: int) -> Food:
         return self._get_food_habits_by_id(food_habits_id)
 
-    def get_food_habits_by_date(self, food_habits_date: datetime) -> Food:
+    def get_food_habits_by_date(self, food_habits_date: datetime) -> Query[Food]:
         return self._get_food_habits_by_date(food_habits_date)
 
     def update_food_habits(self, food_habits: Food, food_habits_data: dict) -> None:
@@ -73,7 +73,7 @@ class AbstractRepository(ABC):
     def get_mood_by_id(self, mood_id: int) -> Mood:
         return self._get_mood_by_id(mood_id)
 
-    def get_mood_by_date(self, mood_date: datetime) -> Mood:
+    def get_mood_by_date(self, mood_date: datetime) -> Query[Mood]:
         return self._get_mood_by_date(mood_date)
 
     def delete_mood(self, mood: Mood) -> None:
@@ -88,7 +88,7 @@ class AbstractRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_humor_by_date(self, humor_date: datetime) -> Humor:
+    def _get_humor_by_date(self, humor_date: datetime) -> Query[Humor]:
         raise NotImplementedError
 
     @abstractmethod
@@ -108,7 +108,7 @@ class AbstractRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_water_intake_by_date(self, water_intake_date: datetime) -> Water:
+    def _get_water_intake_by_date(self, water_intake_date: datetime) -> Query[Water]:
         raise NotImplementedError
 
     @abstractmethod
@@ -130,7 +130,7 @@ class AbstractRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_exercises_by_date(self, exercises_date: datetime) -> Exercises:
+    def _get_exercises_by_date(self, exercises_date: datetime) -> Query[Exercises]:
         raise NotImplementedError
 
     @abstractmethod
@@ -150,7 +150,7 @@ class AbstractRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_food_habits_by_date(self, food_habits_date: datetime) -> Food:
+    def _get_food_habits_by_date(self, food_habits_date: datetime) -> Query[Food]:
         raise NotImplementedError
 
     @abstractmethod
@@ -170,7 +170,7 @@ class AbstractRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_mood_by_date(self, mood_date: datetime) -> Mood:
+    def _get_mood_by_date(self, mood_date: datetime) -> Query[Mood]:
         raise NotImplementedError
 
     @abstractmethod
@@ -189,8 +189,8 @@ class SQLRepository(AbstractRepository):
     def _get_humor_by_id(self, humor_id: int) -> Humor:
         return self.session.query(Humor).filter_by(id=humor_id).first()
 
-    def _get_humor_by_date(self, humor_date: datetime) -> Humor:
-        return self.session.query(Humor).filter_by(date=humor_date).first()
+    def _get_humor_by_date(self, humor_date: datetime) -> Query[Humor]:
+        return self.session.query(Humor).filter_by(date=humor_date)
 
     def _update_humor(self, humor: Humor, humor_data: dict) -> None:
         for key in humor_data:
@@ -205,8 +205,8 @@ class SQLRepository(AbstractRepository):
     def _get_water_intake_by_id(self, water_intake_id: int) -> Water:
         return self.session.query(Water).filter_by(id=water_intake_id).first()
 
-    def _get_water_intake_by_date(self, water_intake_date: datetime) -> Water:
-        return self.session.query(Water).filter_by(date=water_intake_date).first()
+    def _get_water_intake_by_date(self, water_intake_date: datetime) -> Query[Water]:
+        return self.session.query(Water).filter_by(date=water_intake_date)
 
     def _update_water_intake(
         self, water_intake: Water, water_intake_data: dict
@@ -223,8 +223,8 @@ class SQLRepository(AbstractRepository):
     def _get_exercises_by_id(self, exercises_id: int) -> Exercises:
         return self.session.query(Exercises).filter_by(id=exercises_id).first()
 
-    def _get_exercises_by_date(self, exercises_date: datetime) -> Exercises:
-        return self.session.query(Exercises).filter_by(date=exercises_date).first()
+    def _get_exercises_by_date(self, exercises_date: datetime) -> Query[Exercises]:
+        return self.session.query(Exercises).filter_by(date=exercises_date)
 
     def _update_exercises(self, exercises: Exercises, exercises_data: dict) -> None:
         for key in exercises_data:
@@ -239,8 +239,8 @@ class SQLRepository(AbstractRepository):
     def _get_food_habits_by_id(self, food_habits_id: int) -> Food:
         return self.session.query(Food).filter_by(id=food_habits_id).first()
 
-    def _get_food_habits_by_date(self, food_habits_date: datetime) -> Food:
-        return self.session.query(Food).filter_by(date=food_habits_date).first()
+    def _get_food_habits_by_date(self, food_habits_date: datetime) -> Query[Food]:
+        return self.session.query(Food).filter_by(date=food_habits_date)
 
     def _update_food_habits(self, food_habits: Food, food_habits_data: dict) -> None:
         for key in food_habits_data:
@@ -255,8 +255,8 @@ class SQLRepository(AbstractRepository):
     def _get_mood_by_id(self, mood_id: int) -> Mood:
         return self.session.query(Mood).filter_by(id=mood_id).first()
 
-    def _get_mood_by_date(self, mood_date: datetime) -> Mood:
-        return self.session.query(Mood).filter_by(date=mood_date).first()
+    def _get_mood_by_date(self, mood_date: datetime) -> Query[Mood]:
+        return self.session.query(Mood).filter_by(date=mood_date)
 
     def _delete_mood(self, mood: Mood) -> None:
         self.session.delete(mood)
