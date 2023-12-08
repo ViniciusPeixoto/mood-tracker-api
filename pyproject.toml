@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mood-tracker"
-version = "0.1.0"
+version = "1.0.0"
 description = "Tracks various lifestryle routines to better evaluate your mood."
 authors = ["Vinicius Peixoto <vinicius.opeixoto@gmail.com>"]
 readme = "README.md"

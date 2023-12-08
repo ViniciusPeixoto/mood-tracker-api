@@ -138,8 +138,10 @@ class MoodResource(Resource):
         `POST` /mood
 
         Required Body:
-            `minutes`: duration of exercise
-            `description`: text describing the activity
+            `humor`: a Humor object
+            `water_intake`: a Water object.
+            `exercises`: an Exercises object.
+            `food_habits`: a Food object.
 
         Responses:
             `400 Bad Request`: Body data is missing
