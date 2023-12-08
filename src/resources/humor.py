@@ -121,7 +121,7 @@ class HumorResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_humors = {humor.id: str(humor) for humor in humors}
+        all_humors = {humor.id: json.loads(str(humor)) for humor in humors}
 
         resp.text = json.dumps(all_humors)
         resp.status = falcon.HTTP_OK

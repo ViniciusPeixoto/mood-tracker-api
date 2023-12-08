@@ -122,7 +122,7 @@ class FoodResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_foods = {food.id: str(food) for food in foods}
+        all_foods = {food.id: json.loads(str(food)) for food in foods}
 
         resp.text = json.dumps(all_foods)
         resp.status = falcon.HTTP_OK

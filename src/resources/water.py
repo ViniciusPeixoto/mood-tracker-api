@@ -137,7 +137,7 @@ class WaterResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_water_intakes = {water_intake.id: str(water_intake) for water_intake in water_intakes}
+        all_water_intakes = {water_intake.id: json.loads(str(water_intake)) for water_intake in water_intakes}
 
         resp.text = json.dumps(all_water_intakes)
         resp.status = falcon.HTTP_OK

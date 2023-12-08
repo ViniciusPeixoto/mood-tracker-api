@@ -125,7 +125,7 @@ class MoodResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_moods = {mood.id: str(mood) for mood in moods}
+        all_moods = {mood.id: json.loads(str(mood)) for mood in moods}
 
         resp.text = json.dumps(all_moods)
         resp.status = falcon.HTTP_OK

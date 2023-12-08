@@ -132,7 +132,7 @@ class ExercisesResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_exercises = {exercise.id: str(exercise) for exercise in exercises}
+        all_exercises = {exercise.id: json.loads(str(exercise)) for exercise in exercises}
 
         resp.text = json.dumps(all_exercises)
         resp.status = falcon.HTTP_OK
