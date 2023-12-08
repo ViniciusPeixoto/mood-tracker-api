@@ -7,10 +7,10 @@ from falcon import testing
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app import run
-from config import get_db_uri, settings
-from src.repository.models import Base, Exercises, Food, Humor, Mood, Water
-from src.repository.unit_of_work import AbstractUnitOfWork, SQLAlchemyUnitOfWork
+from api.config.config import get_db_uri, settings
+from api.main import run
+from api.repository.models import Base, Exercises, Food, Humor, Mood, Water
+from api.repository.unit_of_work import AbstractUnitOfWork, SQLAlchemyUnitOfWork
 
 
 @pytest.fixture(scope="session", autouse=True)

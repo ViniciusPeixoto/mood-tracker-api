@@ -5,6 +5,8 @@ DB_NAME = "mtdev"
 DB_USER = "admin"
 DB_HOST = "localhost"
 DB_PORT = "5432"
+LOGGING_CONFIG = "logging.conf"
+LOGGING_FILE = "api.log"
 
 [production]
 

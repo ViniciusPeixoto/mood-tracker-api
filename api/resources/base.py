@@ -1,4 +1,4 @@
-from src.repository.unit_of_work import AbstractUnitOfWork
+from api.repository.unit_of_work import AbstractUnitOfWork
 
 
 class Resource:

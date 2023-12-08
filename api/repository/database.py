@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session, Query
 
-from src.repository.models import Exercises, Food, Humor, Mood, Water
+from api.repository.models import Exercises, Food, Humor, Mood, Water
 
 
 class AbstractRepository(ABC):

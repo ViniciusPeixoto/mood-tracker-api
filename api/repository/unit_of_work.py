@@ -4,9 +4,9 @@ from typing import Any, Callable
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from config import get_db_uri
-from src.repository.database import AbstractRepository, SQLRepository
-from src.repository.models import Base
+from api.config.config import get_db_uri
+from api.repository.database import AbstractRepository, SQLRepository
+from api.repository.models import Base
 
 engine = create_engine(get_db_uri(), echo=True)
 # TODO: remove create tables from application

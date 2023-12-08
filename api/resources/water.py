@@ -5,10 +5,11 @@ from datetime import datetime
 
 import falcon
 
-from src.repository.models import Water
-from src.resources.base import Resource
+from api.repository.models import Water
+from api.resources.base import Resource
+from api.config.config import get_logging_conf
 
-logging.config.fileConfig("src/utils/logging.conf")
+logging.config.fileConfig(get_logging_conf())
 simpleLogger = logging.getLogger("simpleLogger")
 detailedLogger = logging.getLogger("detailedLogger")
 

@@ -22,3 +22,7 @@ def get_db_uri() -> str:
     db_host = settings.DB_HOST
     db_port = settings.DB_PORT
     return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+
+
+def get_logging_conf() -> str:
+    return current_directory + "/" + settings.LOGGING_CONFIG

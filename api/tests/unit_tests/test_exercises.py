@@ -1,10 +1,9 @@
 from datetime import date
 
 import pytest
-from sqlalchemy import select
 
-from src.repository.models import Exercises
-from src.repository.unit_of_work import AbstractUnitOfWork
+from api.repository.models import Exercises
+from api.repository.unit_of_work import AbstractUnitOfWork
 
 
 @pytest.mark.parametrize("exercise_id, status_code", [(1, 200), (11, 404)])

@@ -3,8 +3,8 @@ from datetime import date, timedelta
 import pytest
 from sqlalchemy import select
 
-from src.repository.models import Exercises, Food, Humor, Mood, Water
-from src.repository.unit_of_work import AbstractUnitOfWork
+from api.repository.models import Exercises, Food, Humor, Mood, Water
+from api.repository.unit_of_work import AbstractUnitOfWork
 
 
 @pytest.mark.parametrize("mood_id, status_code", [(1, 200), (11, 404)])

@@ -3,14 +3,15 @@ import logging.config
 
 import falcon
 
-from src.repository.unit_of_work import AbstractUnitOfWork, SQLAlchemyUnitOfWork
-from src.resources.exercises import ExercisesResource
-from src.resources.food import FoodResource
-from src.resources.humor import HumorResource
-from src.resources.mood import MoodResource
-from src.resources.water import WaterResource
+from api.config.config import get_logging_conf
+from api.repository.unit_of_work import AbstractUnitOfWork, SQLAlchemyUnitOfWork
+from api.resources.exercises import ExercisesResource
+from api.resources.food import FoodResource
+from api.resources.humor import HumorResource
+from api.resources.mood import MoodResource
+from api.resources.water import WaterResource
 
-logging.config.fileConfig("src/utils/logging.conf")
+logging.config.fileConfig(get_logging_conf())
 simpleLogger = logging.getLogger("simpleLogger")
 
 uow = SQLAlchemyUnitOfWork()

@@ -3,8 +3,8 @@ from datetime import date
 import pytest
 from sqlalchemy import select
 
-from src.repository.models import Food
-from src.repository.unit_of_work import AbstractUnitOfWork
+from api.repository.models import Food
+from api.repository.unit_of_work import AbstractUnitOfWork
 
 
 @pytest.mark.parametrize("food_id, status_code", [(1, 200), (11, 404)])

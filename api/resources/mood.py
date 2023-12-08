@@ -6,10 +6,11 @@ from datetime import datetime
 
 import falcon
 
-from src.repository.models import Exercises, Food, Humor, Mood, Water
-from src.resources.base import Resource
+from api.config.config import get_logging_conf
+from api.repository.models import Exercises, Food, Humor, Mood, Water
+from api.resources.base import Resource
 
-logging.config.fileConfig("src/utils/logging.conf")
+logging.config.fileConfig(get_logging_conf())
 simpleLogger = logging.getLogger("simpleLogger")
 detailedLogger = logging.getLogger("detailedLogger")
 
