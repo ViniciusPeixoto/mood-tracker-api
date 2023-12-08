@@ -21,17 +21,23 @@ class WaterResource(Resource):
     `GET` /water-intake/{water_intake_id}
         Retrieves a single water intake's data using its ID
     `GET` /water-intake/date/{water_intake_date}
-        Retrieves a single water intake's data using its creation date
+        Retrieves all water intakes' data using the creation date
     `POST` /water-intake
         Adds a new water intake entry with:
             milliliters: volume of water consumed, in ml
             description: text describing issues for consumption
             pee: True/False if there was excessive peeing during the day
+    `PATCH` /water-intake/{water_intake_id}
+        Updates a single water intake's data using its ID
+    `DELETE` /water-intake/{water_intake_id}
+        Deletes a single water intake's data using its ID
+    `DELETE` /water-intake/date/{water_intake_date}
+        Deletes all water intakes' data using the creation date
     """
 
     def on_get(self, req: falcon.Request, resp: falcon.Response, water_intake_id: int):
         """
-        Retrieves a single water intake's data using water intake's ID
+        Retrieves a single water intake's data using its ID
 
         `GET` /water-intake/{water_intake_id}
 
@@ -79,7 +85,7 @@ class WaterResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, water_intake_date: str
     ):
         """
-        Retrieves all water intakes' data using water intakes' creation date
+        Retrieves all water intakes' data using the creation date
 
         `GET` /water-intake/date/{water_intake_date}
 
@@ -146,7 +152,7 @@ class WaterResource(Resource):
 
     def on_post_add(self, req: falcon.Request, resp: falcon.Response):
         """
-        Adds a new water intake
+        Adds a new water intake entry
 
         `POST` /water-intake
 
@@ -222,7 +228,7 @@ class WaterResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, water_intake_id: int
     ):
         """
-        Updates a single water intake's data using water intake's ID
+        Updates a single water intake's data using its ID
 
         `PATCH` /water-intake/{water_intake_id}
 
@@ -297,7 +303,7 @@ class WaterResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, water_intake_id: int
     ):
         """
-        Deletes a single water_intake's data using water_intake's ID
+        Deletes a single water intake's data using its ID
 
         `DELETE` /water-intake/{water_intake_id}
 
@@ -359,7 +365,7 @@ class WaterResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, water_intake_date: str
     ):
         """
-        Deletes all water_intakes' data using water_intakes' creation date
+        Deletes all water intakes' data using the creation date
 
         `DELETE` /water-intake/date/{water_intake_date}
 

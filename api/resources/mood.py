@@ -22,7 +22,7 @@ class MoodResource(Resource):
     `GET` /mood/{mood_id}
         Retrieves a single mood's data using its ID
     `GET` /mood/date/{mood_date}
-        Retrieves a single mood's data using its creation date
+        Retrieves all moods' data using the creation date
     `POST` /mood
         Adds a new mood entry with:
             exercises: data for exercises entry
@@ -31,11 +31,17 @@ class MoodResource(Resource):
             water_intake: data for water intake entry
     `POST` /mood/date/{mood_date}
         Adds a new mood entry for a given date using pre-existing data for the date
+    `PATCH` /mood/{mood_id}
+        Updates a single mood's data using its ID
+    `DELETE` /mood/{mood_id}
+        Deletes a single mood's data using its ID
+    `DELETE` /mood/date/{mood_date}
+        Deletes all moods' data using the creation date
     """
 
     def on_get(self, req: falcon.Request, resp: falcon.Response, mood_id: int):
         """
-        Retrieves a single mood's data using mood's ID
+        Retrieves a single mood's data using its ID
 
         `GET` /mood/{mood_id}
 
@@ -76,7 +82,7 @@ class MoodResource(Resource):
 
     def on_get_date(self, req: falcon.Request, resp: falcon.Response, mood_date: str):
         """
-        Retrieves all mood's data using moods' creation date
+        Retrieves all moods' data using the creation date
 
         `GET` /mood/date/{mood_date}
 
@@ -134,7 +140,7 @@ class MoodResource(Resource):
 
     def on_post(self, req: falcon.Request, resp: falcon.Response):
         """
-        Adds a new mood
+        Adds a new mood entry
 
         `POST` /mood
 
@@ -338,7 +344,7 @@ class MoodResource(Resource):
 
     def on_patch(self, req: falcon.Request, resp: falcon.Response, mood_id: int):
         """
-        Updates a single mood's data using mood's ID
+        Updates a single mood's data using its ID
 
         `PATCH` /mood/{mood_id}
 
@@ -424,7 +430,7 @@ class MoodResource(Resource):
 
     def on_delete(self, req: falcon.Request, resp: falcon.Response, mood_id: int):
         """
-        Deletes a single mood's data using mood's ID
+        Deletes a single mood's data using its ID
 
         `DELETE` /mood/{mood_id}
 
@@ -477,7 +483,7 @@ class MoodResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, mood_date: str
     ):
         """
-        Deletes all moods' data using moods' creation date
+        Deletes all moods' data using the creation date
 
         `DELETE` /mood/date/{mood_date}
 
