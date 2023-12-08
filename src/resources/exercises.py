@@ -132,7 +132,7 @@ class ExercisesResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_exercises = {exercise.id: str(exercise) for exercise in exercises.all()}
+        all_exercises = {exercise.id: str(exercise) for exercise in exercises}
 
         resp.text = json.dumps(all_exercises)
         resp.status = falcon.HTTP_OK
@@ -394,7 +394,7 @@ class ExercisesResource(Resource):
 
         try:
             simpleLogger.debug("Deleting exercises from database using date.")
-            for exercise in exercises.all():
+            for exercise in exercises:
                 self.uow.repository.delete_exercises(exercise)
             self.uow.commit()
         except Exception as e:
