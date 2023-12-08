@@ -21,16 +21,22 @@ class ExercisesResource(Resource):
     `GET` /exercises/{exercises_id}
         Retrieves a single exercise's data using its ID
     `GET` /exercises/date/{exercises_date}
-        Retrieves a single exercise's data using its creation date
+        Retrieves all exercises' data using the creation date
     `POST` /exercises
         Adds a new exercise entry with:
             minutes: duration of exercise
             description: text describing the activity
+    `PATCH` /exercises/{exercises_id}
+        Updates a single exercises's data using its ID
+    `DELETE` /exercises/{exercises_id}
+        Deletes a single exercise's data using its ID
+    `DELETE` /exercises/date/{exercises_date}
+        Deletes all exercises' data using the creation date
     """
 
     def on_get(self, req: falcon.Request, resp: falcon.Response, exercises_id: int):
         """
-        Retrieves a single exercise's data using exercise's ID
+        Retrieves a single exercise's data using its ID
 
         `GET` /exercises/{exercises_id}
 
@@ -77,7 +83,7 @@ class ExercisesResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, exercises_date: str
     ):
         """
-        Retrieves all exercises' data using exercises' creation date
+        Retrieves all exercises' data using the creation date
 
         `GET` /exercises/date/{exercises_date}
 
@@ -141,7 +147,7 @@ class ExercisesResource(Resource):
 
     def on_post_add(self, req: falcon.Request, resp: falcon.Response):
         """
-        Adds a new exercise
+        Adds a new exercise entry
 
         `POST` /exercises
 
@@ -209,7 +215,7 @@ class ExercisesResource(Resource):
 
     def on_patch(self, req: falcon.Request, resp: falcon.Response, exercises_id: int):
         """
-        Updates a single exercises's data using exercises's ID
+        Updates a single exercises's data using its ID
 
         `PATCH` /exercises/{exercises_id}
 
@@ -279,7 +285,7 @@ class ExercisesResource(Resource):
 
     def on_delete(self, req: falcon.Request, resp: falcon.Response, exercises_id: int):
         """
-        Deletes a single exercise's data using exercise's ID
+        Deletes a single exercise's data using its ID
 
         `DELETE` /exercises/{exercises_id}
 
@@ -339,7 +345,7 @@ class ExercisesResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, exercises_date: str
     ):
         """
-        Deletes all exercises' data using exercises' creation date
+        Deletes all exercises' data using the creation date
 
         `DELETE` /exercises/date/{exercises_date}
 

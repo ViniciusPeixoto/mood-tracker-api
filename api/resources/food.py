@@ -21,16 +21,22 @@ class FoodResource(Resource):
     `GET` /food/{food_id}
         Retrieves a single food habit's data using its ID
     `GET` /food/date/{food_date}
-        Retrieves a single food habit's data using its creation date
+        Retrieves all food habits' data using the creation date
     `POST` /food
         Adds a new food habit entry with:
             value: evaluation of food habit
             description: text describing the given grade
+    `PATCH` /food/{food_id}
+        Updates a single food habit's data using its ID
+    `DELETE` /food/{food_id}
+        Deletes a single food habit's data using its ID
+    `DELETE` /food/date/{food_date}
+        Deletes all food habits' data using the creation date
     """
 
     def on_get(self, req: falcon.Request, resp: falcon.Response, food_id: int):
         """
-        Retrieves a single food habit's data using food habit's ID
+        Retrieves a single food habit's data using its ID
 
         `GET` /food/{food_id}
 
@@ -73,7 +79,7 @@ class FoodResource(Resource):
 
     def on_get_date(self, req: falcon.Request, resp: falcon.Response, food_date: str):
         """
-        Retrieves all food habits' data using food habits' creation date
+        Retrieves all food habits' data using the creation date
 
         `GET` /food/date/{food_date}
 
@@ -131,7 +137,7 @@ class FoodResource(Resource):
 
     def on_post_add(self, req: falcon.Request, resp: falcon.Response):
         """
-        Adds a new food habit
+        Adds a new food habit entry
 
         `POST` /food
 
@@ -202,7 +208,7 @@ class FoodResource(Resource):
 
     def on_patch(self, req: falcon.Request, resp: falcon.Response, food_id: int):
         """
-        Updates a single food habits's data using food habits's ID
+        Updates a single food habit's data using its ID
 
         `PATCH` /food/{food_id}
 
@@ -214,7 +220,7 @@ class FoodResource(Resource):
 
             `500 Server Error`: Database error
 
-            `200 OK`: Exercises's data successfully updated
+            `200 OK`: Food's data successfully updated
         """
         simpleLogger.info(f"PATCH /food/{food_id}")
         food_habits = None
@@ -272,7 +278,7 @@ class FoodResource(Resource):
 
     def on_delete(self, req: falcon.Request, resp: falcon.Response, food_id: int):
         """
-        Deletes a single food's data using food's ID
+        Deletes a single food habit's data using its ID
 
         `DELETE` /food/{food_id}
 
@@ -326,7 +332,7 @@ class FoodResource(Resource):
         self, req: falcon.Request, resp: falcon.Response, food_date: str
     ):
         """
-        Deletes all food habits' data using food habits' creation date
+        Deletes all food habits' data using the creation date
 
         `DELETE` /food/date/{food_date}
 
