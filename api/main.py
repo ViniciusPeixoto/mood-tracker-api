@@ -9,6 +9,7 @@ from api.repository.unit_of_work import AbstractUnitOfWork, SQLAlchemyUnitOfWork
 from api.resources.exercises import ExercisesResource
 from api.resources.food import FoodResource
 from api.resources.humor import HumorResource
+from api.resources.login import LoginResource
 from api.resources.mood import MoodResource
 from api.resources.water import WaterResource
 
@@ -21,6 +22,9 @@ uow = SQLAlchemyUnitOfWork()
 def load_routes(app: falcon.App, uow: AbstractUnitOfWork) -> None:
     simpleLogger.info("Starting loading routes.")
     with uow:
+        app.add_route("/login", LoginResource(uow))
+        app.add_route("/register", LoginResource(uow), suffix="register")
+
         app.add_route("/humor", HumorResource(uow), suffix="add")
         app.add_route("/humor/{humor_id}", HumorResource(uow))
         app.add_route("/humor/date/{humor_date}", HumorResource(uow), suffix="date")

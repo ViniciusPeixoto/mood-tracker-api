@@ -95,7 +95,7 @@ class AbstractRepository(ABC):
         return self._get_all_user_auth()
 
     def get_user_auth_by_username(self, username: str) -> UserAuth:
-        self._get_user_auth_by_username(username)
+        return self._get_user_auth_by_username(username)
 
     def update_user_auth(self, user_auth: UserAuth, user_auth_data: dict) -> None:
         self._update_user_auth(user_auth, user_auth_data)
@@ -342,7 +342,7 @@ class SQLRepository(AbstractRepository):
         return self.session.query(UserAuth)
 
     def _get_user_auth_by_username(self, username: str) -> UserAuth:
-        self.session.query(UserAuth).filter_by(id=username).first()
+        return self.session.query(UserAuth).filter_by(username=username).first()
 
     def _update_user_auth(self, user_auth: UserAuth, user_auth_data: dict) -> None:
         for key in user_auth_data:

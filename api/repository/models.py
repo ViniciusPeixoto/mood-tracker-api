@@ -20,12 +20,8 @@ class Humor(Base):
     description: Mapped[Optional[str]]
     health_based: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    user: Mapped["User"] = relationship(
-        back_populates="humor", cascade="all, delete-orphan"
-    )
-    mood: Mapped["Mood"] = relationship(
-        back_populates="humor", cascade="all, delete-orphan"
-    )
+    mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
+    mood: Mapped["Mood"] = relationship(back_populates="humor")
 
     def __str__(self) -> str:
         return f'{{\
@@ -61,12 +57,8 @@ class Water(Base):
     description: Mapped[Optional[str]]
     pee: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    user: Mapped["User"] = relationship(
-        back_populates="water_intake", cascade="all, delete-orphan"
-    )
-    mood: Mapped["Mood"] = relationship(
-        back_populates="water_intake", cascade="all, delete-orphan"
-    )
+    mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
+    mood: Mapped["Mood"] = relationship(back_populates="water_intake")
 
     def __str__(self) -> str:
         return f'{{\
@@ -101,12 +93,8 @@ class Exercises(Base):
     minutes: Mapped[int] = mapped_column(Integer, default=0)
     description: Mapped[Optional[str]]
 
-    user: Mapped["User"] = relationship(
-        back_populates="exercises", cascade="all, delete-orphan"
-    )
-    mood: Mapped["Mood"] = relationship(
-        back_populates="exercises", cascade="all, delete-orphan"
-    )
+    mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
+    mood: Mapped["Mood"] = relationship(back_populates="exercises")
 
     def __str__(self) -> str:
         return f'{{\
@@ -139,12 +127,8 @@ class Food(Base):
     value: Mapped[int]
     description: Mapped[str] = mapped_column(String(256))
 
-    user: Mapped["User"] = relationship(
-        back_populates="food_habits", cascade="all, delete-orphan"
-    )
-    mood: Mapped["Mood"] = relationship(
-        back_populates="food_habits", cascade="all, delete-orphan"
-    )
+    mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
+    mood: Mapped["Mood"] = relationship(back_populates="food_habits")
 
     def __str__(self) -> str:
         return f'{{\
@@ -174,19 +158,14 @@ class Mood(Base):
     date: Mapped[datetime] = mapped_column(
         Date, default=datetime.today().date()
     )
-    humor_id: Mapped[int] = mapped_column(ForeignKey("user_humor.id"))
-    water_intake_id: Mapped[int] = mapped_column(ForeignKey("user_water_intake.id"))
-    exercises_id: Mapped[int] = mapped_column(ForeignKey("user_exercises.id"))
-    food_habits_id: Mapped[int] = mapped_column(ForeignKey("user_food_habits.id"))
 
-    humor: Mapped["Humor"] = relationship(back_populates="mood")
-    water_intake: Mapped["Water"] = relationship(back_populates="mood")
-    exercises: Mapped["Exercises"] = relationship(back_populates="mood")
-    food_habits: Mapped["Food"] = relationship(back_populates="mood")
+    humor: Mapped["Humor"] = relationship(back_populates="mood", cascade="all, delete-orphan")
+    water_intake: Mapped["Water"] = relationship(back_populates="mood", cascade="all, delete-orphan")
+    exercises: Mapped["Exercises"] = relationship(back_populates="mood", cascade="all, delete-orphan")
+    food_habits: Mapped["Food"] = relationship(back_populates="mood", cascade="all, delete-orphan")
 
-    user: Mapped["User"] = relationship(
-        back_populates="mood", cascade="all, delete-orphan"
-    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user: Mapped["User"] = relationship(back_populates="mood")
 
     def __str__(self) -> str:
         return f'{{\
@@ -214,24 +193,12 @@ class Mood(Base):
 
 
 class User(Base):
-    __tablename__ = "user"
+    __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    humor_id: Mapped[int] = mapped_column(ForeignKey("user_humor.id"))
-    water_intake_id: Mapped[int] = mapped_column(ForeignKey("user_water_intake.id"))
-    exercises_id: Mapped[int] = mapped_column(ForeignKey("user_exercises.id"))
-    food_habits_id: Mapped[int] = mapped_column(ForeignKey("user_food_habits.id"))
-    mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
 
-    humor: Mapped["Humor"] = relationship(back_populates="user")
-    water_intake: Mapped["Water"] = relationship(back_populates="user")
-    exercises: Mapped["Exercises"] = relationship(back_populates="user")
-    food_habits: Mapped["Food"] = relationship(back_populates="user")
-    mood: Mapped["Mood"] = relationship(back_populates="user")
-
-    user_auth: Mapped["UserAuth"] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
+    mood: Mapped["Mood"] = relationship(back_populates="user", cascade="all, delete-orphan")
+    user_auth: Mapped["UserAuth"] = relationship(back_populates="user", cascade="all, delete-orphan")
 
     def __str__(self) -> str:
         return f'{{"id":"{self.id}"}}'
@@ -254,4 +221,5 @@ class UserAuth(Base):
     )
     active: Mapped[bool] = mapped_column(Boolean, default=True)
 
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped["User"] = relationship(back_populates="user_auth")
