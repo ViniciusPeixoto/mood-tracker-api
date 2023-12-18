@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session, Query
 
-from api.repository.models import Exercises, Food, Humor, Mood, Water
+from api.repository.models import Exercises, Food, Humor, Mood, Water, User, UserAuth
 
 
 class AbstractRepository(ABC):
@@ -78,6 +78,33 @@ class AbstractRepository(ABC):
 
     def delete_mood(self, mood: Mood) -> None:
         self._delete_mood(mood)
+
+    def add_user(self, user: User) -> None:
+        self._add_user(user)
+
+    def get_user_by_id(self, user_id: int) -> User:
+        return self._get_user_by_id(user_id)
+
+    def update_user(self, user: User, user_data: dict) -> None:
+        self._update_user(user, user_data)
+
+    def add_user_auth(self, user_auth: UserAuth) -> None:
+        self._add_user_auth(user_auth)
+
+    def get_all_user_auth(self) -> Query[UserAuth]:
+        return self._get_all_user_auth()
+
+    def get_user_auth_by_username(self, username: str) -> UserAuth:
+        self._get_user_auth_by_username(username)
+
+    def update_user_auth(self, user_auth: UserAuth, user_auth_data: dict) -> None:
+        self._update_user_auth(user_auth, user_auth_data)
+
+    def deactivate_user_auth(self, user_auth: UserAuth) -> None:
+        self._deactivate_user_auth(user_auth)
+
+    def delete_user_auth(self, user_auth: UserAuth) -> None:
+        self._delete_user_auth(user_auth)
 
     @abstractmethod
     def _add_humor(self, humor: Humor) -> None:
@@ -177,6 +204,43 @@ class AbstractRepository(ABC):
     def _delete_mood(self, mood: Mood) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def _add_user(self, user: User) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_user_by_id(self, user_id: int) -> User:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _update_user(self, user: User, user_data: dict) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _add_user_auth(self, user_auth: UserAuth) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_all_user_auth(self) -> Query[UserAuth]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_user_auth_by_username(self, username: str) -> UserAuth:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _update_user_auth(self, user_auth: UserAuth, user_auth_data: dict) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _deactivate_user_auth(self, user_auth: UserAuth) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _delete_user_auth(self, user_auth: UserAuth) -> None:
+        raise NotImplementedError
+
+
 
 class SQLRepository(AbstractRepository):
     def __init__(self, session: Session) -> None:
@@ -260,3 +324,32 @@ class SQLRepository(AbstractRepository):
 
     def _delete_mood(self, mood: Mood) -> None:
         self.session.delete(mood)
+
+    def _add_user(self, user: User) -> None:
+        self.session.add(user)
+
+    def _get_user_by_id(self, user_id: int) -> User:
+        return self.session.query(User).filter_by(id=user_id).first()
+
+    def _update_user(self, user: User, user_data: dict) -> None:
+        for key in user_data:
+            setattr(user, key, user_data[key])
+
+    def _add_user_auth(self, user_auth: UserAuth) -> None:
+        self.session.add(user_auth)
+
+    def _get_all_user_auth(self) -> Query[UserAuth]:
+        return self.session.query(UserAuth)
+
+    def _get_user_auth_by_username(self, username: str) -> UserAuth:
+        self.session.query(UserAuth).filter_by(id=username).first()
+
+    def _update_user_auth(self, user_auth: UserAuth, user_auth_data: dict) -> None:
+        for key in user_auth_data:
+            setattr(user_auth, key, user_auth_data[key])
+
+    def _deactivate_user_auth(self, user_auth: UserAuth) -> None:
+        setattr(user_auth, "active", False)
+
+    def _delete_user_auth(self, user_auth: UserAuth) -> None:
+        self.session.delete(user_auth)
