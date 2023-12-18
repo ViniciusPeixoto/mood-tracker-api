@@ -30,7 +30,7 @@ class AuthMiddleware:
         except jwt.InvalidTokenError:
             raise falcon.HTTPUnauthorized(description="Invalid token.")
 
-        username = decoded["username"]
+        username = decoded.get("username")
         if not self.uow.repository.get_user_auth_by_username(username):
             raise falcon.HTTPUnauthorized(description="Invalid user.")
 

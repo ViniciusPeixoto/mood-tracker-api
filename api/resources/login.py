@@ -42,14 +42,14 @@ class LoginResource(Resource):
             resp.status = falcon.HTTP_BAD_REQUEST
             return
 
-        user_auth = self.uow.repository.get_user_auth_by_username(body["username"])
+        user_auth = self.uow.repository.get_user_auth_by_username(body.get("username"))
         if not user_auth:
-            simpleLogger.debug(f"No User data with username {body['username']}.")
-            resp.text = json.dumps({"error": f"No User data with username {body['username']}."})
+            simpleLogger.debug(f"No User data with username {body.get('username')}.")
+            resp.text = json.dumps({"error": f"No User data with username {body.get('username')}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        if not body["password"] == user_auth.password:
+        if not body.get("password") == user_auth.password:
             simpleLogger.debug(f"Invalid credentials for {user_auth.username}.")
             resp.text = json.dumps({"error": "Invalid credentials."})
             resp.status = falcon.HTTP_UNAUTHORIZED
