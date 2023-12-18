@@ -4,6 +4,7 @@ import logging.config
 import falcon
 
 from api.config.config import get_logging_conf
+from api.middleware.auth import AuthMiddleware
 from api.repository.unit_of_work import AbstractUnitOfWork, SQLAlchemyUnitOfWork
 from api.resources.exercises import ExercisesResource
 from api.resources.food import FoodResource
@@ -48,7 +49,8 @@ def load_routes(app: falcon.App, uow: AbstractUnitOfWork) -> None:
 
 def run(uow: AbstractUnitOfWork) -> falcon.App:
     simpleLogger.info("Starting the application.")
-    app = falcon.App()
+    middlewares = [AuthMiddleware(uow)]
+    app = falcon.App(middleware=middlewares)
     load_routes(app, uow)
 
     return app

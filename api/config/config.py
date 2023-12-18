@@ -26,3 +26,7 @@ def get_db_uri() -> str:
 
 def get_logging_conf() -> str:
     return current_directory + "/" + settings.LOGGING_CONFIG
+
+
+def get_jwt_secret_key() -> str:
+    return settings.JWT_SECRET_KEY
