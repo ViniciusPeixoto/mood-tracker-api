@@ -1,12 +1,12 @@
 import json
 import logging
 import logging.config
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import falcon
 import jwt
 
-from api.config.config import get_logging_conf, get_jwt_secret_key
+from api.config.config import get_logging_conf, get_jwt_secret_key, AUTHENTICATION_TTL
 from api.repository.models import User, UserAuth
 from api.resources.base import Resource
 
@@ -55,10 +55,26 @@ class LoginResource(Resource):
             resp.status = falcon.HTTP_UNAUTHORIZED
             return
 
-        token = jwt.encode({"username": user_auth.username}, get_jwt_secret_key(), algorithm="HS256")
         self.uow.repository.update_user_auth(user_auth, {"last_login": datetime.now()})
-        resp.text = json.dumps({"token": token})
-        resp.status = falcon.HTTP_OK
+        login_data = {
+            "exp": str(int((datetime.now() + timedelta(minutes=AUTHENTICATION_TTL)).timestamp())),
+            "user_auth_id": str(user_auth.id),
+            "user_auth_username": str(user_auth.username),
+            "user_auth_user_id": str(user_auth.user_id),
+            "user_auth_last_login": str(user_auth.last_login),
+        }
+        token = jwt.encode(login_data, get_jwt_secret_key(), algorithm="HS256")
+
+        try:
+            self.uow.repository.update_user_auth(user_auth, {"token": token})
+            self.uow.commit()
+        except Exception:
+            detailedLogger.error("Could not add token to user_auth.", exc_info=True)
+            resp.text = json.dumps({"error": "Could not add token to user_auth."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        resp.status = falcon.HTTP_NO_CONTENT
         simpleLogger.info(f"POST /login : successful")
 
     def on_post_register(self, req: falcon.Request, resp: falcon.Response):
@@ -85,7 +101,7 @@ class LoginResource(Resource):
 
         try:
             user = User()
-            user_auth = UserAuth(**body, user=user)
+            user_auth = UserAuth(**body, user=user, token="")
             self.uow.repository.add_user_auth(user_auth)
             self.uow.commit()
         except Exception:

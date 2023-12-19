@@ -2,6 +2,8 @@ import os
 
 from dynaconf import Dynaconf
 
+AUTHENTICATION_TTL = 5
+
 current_directory = os.path.dirname(os.path.realpath(__file__))
 
 settings = Dynaconf(

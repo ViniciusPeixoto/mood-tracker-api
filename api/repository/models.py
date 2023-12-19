@@ -219,6 +219,7 @@ class UserAuth(Base):
     last_login: Mapped[datetime] = mapped_column(
         Date, default=datetime.today().date()
     )
+    token: Mapped[str] = mapped_column(String(512))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
