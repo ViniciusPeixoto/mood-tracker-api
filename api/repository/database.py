@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-from sqlalchemy.orm import Session, Query
+from sqlalchemy.orm import Query, Session
 
-from api.repository.models import Exercises, Food, Humor, Mood, Water, User, UserAuth
+from api.repository.models import Exercises, Food, Humor, Mood, User, UserAuth, Water
 
 
 class AbstractRepository(ABC):
@@ -239,7 +239,6 @@ class AbstractRepository(ABC):
     @abstractmethod
     def _delete_user_auth(self, user_auth: UserAuth) -> None:
         raise NotImplementedError
-
 
 
 class SQLRepository(AbstractRepository):

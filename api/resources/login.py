@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import falcon
 import jwt
 
-from api.config.config import get_logging_conf, get_jwt_secret_key, AUTHENTICATION_TTL
+from api.config.config import AUTHENTICATION_TTL, get_jwt_secret_key, get_logging_conf
 from api.repository.models import User, UserAuth
 from api.resources.base import Resource
 
@@ -17,12 +17,38 @@ detailedLogger = logging.getLogger("detailedLogger")
 
 class LoginResource(Resource):
     """
-    login resource docstring
+    Manages Login and Registration.
+
+    `POST` /login
+        Validates credentials for authentication:
+            username: user's username
+            password: user's password
+    `POST` /register
+        Creates a new user with credentials:
+            username: user's username
+            password: user's password
     """
 
     def on_post(self, req: falcon.Request, resp: falcon.Response):
         """
-        login post docstring
+        Validates credentials for authentication
+
+        `POST` /login
+
+        Required Body:
+            `username`: user's username
+            `password`: user's password
+
+        Responses:
+            `400 Bad Request`: Body data is missing
+
+            `401 Unauthorized`: Invalid credentials for user
+
+            `404 Not Found`: No User data with username
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: User's data successfully validated
         """
         simpleLogger.info("POST /login")
         body = req.stream.read(req.content_length or 0)
@@ -45,7 +71,9 @@ class LoginResource(Resource):
         user_auth = self.uow.repository.get_user_auth_by_username(body.get("username"))
         if not user_auth:
             simpleLogger.debug(f"No User data with username {body.get('username')}.")
-            resp.text = json.dumps({"error": f"No User data with username {body.get('username')}."})
+            resp.text = json.dumps(
+                {"error": f"No User data with username {body.get('username')}."}
+            )
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
@@ -57,7 +85,11 @@ class LoginResource(Resource):
 
         self.uow.repository.update_user_auth(user_auth, {"last_login": datetime.now()})
         login_data = {
-            "exp": str(int((datetime.now() + timedelta(minutes=AUTHENTICATION_TTL)).timestamp())),
+            "exp": str(
+                int(
+                    (datetime.now() + timedelta(minutes=AUTHENTICATION_TTL)).timestamp()
+                )
+            ),
             "user_auth_id": str(user_auth.id),
             "user_auth_username": str(user_auth.username),
             "user_auth_user_id": str(user_auth.user_id),
@@ -79,7 +111,20 @@ class LoginResource(Resource):
 
     def on_post_register(self, req: falcon.Request, resp: falcon.Response):
         """
-        register post docstring
+        Creates a new user with credentials
+
+        `POST` /register
+
+        Required Body:
+            `username`: user's username
+            `password`: user's password
+
+        Responses:
+            `400 Bad Request`: Body data is missing
+
+            `500 Server Error`: Database error
+
+            `204 No Content`: User's data successfully created
         """
         simpleLogger.info("POST /register")
         body = req.stream.read(req.content_length or 0)
@@ -106,9 +151,7 @@ class LoginResource(Resource):
             self.uow.commit()
         except Exception:
             detailedLogger.error("Could not add new user to database.", exc_info=True)
-            resp.text = json.dumps(
-                {"error": "Could not add new user to database."}
-            )
+            resp.text = json.dumps({"error": "Could not add new user to database."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 

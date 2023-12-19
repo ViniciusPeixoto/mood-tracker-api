@@ -13,9 +13,7 @@ class Humor(Base):
     __tablename__ = "user_humor"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date()
-    )
+    date: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
     value: Mapped[int] = mapped_column(Integer, default=5)
     description: Mapped[Optional[str]]
     health_based: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -50,9 +48,7 @@ class Water(Base):
     __tablename__ = "user_water_intake"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date()
-    )
+    date: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
     milliliters: Mapped[int]
     description: Mapped[Optional[str]]
     pee: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -87,9 +83,7 @@ class Exercises(Base):
     __tablename__ = "user_exercises"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date()
-    )
+    date: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
     minutes: Mapped[int] = mapped_column(Integer, default=0)
     description: Mapped[Optional[str]]
 
@@ -121,9 +115,7 @@ class Food(Base):
     __tablename__ = "user_food_habits"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date()
-    )
+    date: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
     value: Mapped[int]
     description: Mapped[str] = mapped_column(String(256))
 
@@ -155,14 +147,20 @@ class Mood(Base):
     __tablename__ = "user_mood"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date()
-    )
+    date: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
 
-    humor: Mapped["Humor"] = relationship(back_populates="mood", cascade="all, delete-orphan")
-    water_intake: Mapped["Water"] = relationship(back_populates="mood", cascade="all, delete-orphan")
-    exercises: Mapped["Exercises"] = relationship(back_populates="mood", cascade="all, delete-orphan")
-    food_habits: Mapped["Food"] = relationship(back_populates="mood", cascade="all, delete-orphan")
+    humor: Mapped["Humor"] = relationship(
+        back_populates="mood", cascade="all, delete-orphan"
+    )
+    water_intake: Mapped["Water"] = relationship(
+        back_populates="mood", cascade="all, delete-orphan"
+    )
+    exercises: Mapped["Exercises"] = relationship(
+        back_populates="mood", cascade="all, delete-orphan"
+    )
+    food_habits: Mapped["Food"] = relationship(
+        back_populates="mood", cascade="all, delete-orphan"
+    )
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped["User"] = relationship(back_populates="mood")
@@ -197,8 +195,12 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    mood: Mapped["Mood"] = relationship(back_populates="user", cascade="all, delete-orphan")
-    user_auth: Mapped["UserAuth"] = relationship(back_populates="user", cascade="all, delete-orphan")
+    mood: Mapped["Mood"] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    user_auth: Mapped["UserAuth"] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
     def __str__(self) -> str:
         return f'{{"id":"{self.id}"}}'
@@ -213,12 +215,8 @@ class UserAuth(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(128))
     password: Mapped[str] = mapped_column(String(256))
-    created_at: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date()
-    )
-    last_login: Mapped[datetime] = mapped_column(
-        Date, default=datetime.today().date()
-    )
+    created_at: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
+    last_login: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
     token: Mapped[str] = mapped_column(String(512))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
 
