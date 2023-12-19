@@ -2,6 +2,8 @@ import os
 
 from dynaconf import Dynaconf
 
+AUTHENTICATION_TTL = 5
+
 current_directory = os.path.dirname(os.path.realpath(__file__))
 
 settings = Dynaconf(
@@ -26,3 +28,7 @@ def get_db_uri() -> str:
 
 def get_logging_conf() -> str:
     return current_directory + "/" + settings.LOGGING_CONFIG
+
+
+def get_jwt_secret_key() -> str:
+    return settings.JWT_SECRET_KEY

@@ -163,9 +163,9 @@ class FoodResource(Resource):
 
         allowed_params = ["date", "value", "description"]
         if set(body.keys()).difference(allowed_params):
-            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            simpleLogger.debug("Incorrect parameters in request body for food.")
             resp.text = json.dumps(
-                {"error": "Incorrect parameters in request body for mood."}
+                {"error": "Incorrect parameters in request body for food."}
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
@@ -249,9 +249,9 @@ class FoodResource(Resource):
 
         allowed_params = ["value", "description"]
         if set(body.keys()).difference(allowed_params):
-            simpleLogger.debug("Incorrect parameters in request body for mood.")
+            simpleLogger.debug("Incorrect parameters in request body for food.")
             resp.text = json.dumps(
-                {"error": "Incorrect parameters in request body for mood."}
+                {"error": "Incorrect parameters in request body for food."}
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
