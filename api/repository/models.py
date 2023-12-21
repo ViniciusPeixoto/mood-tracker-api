@@ -213,7 +213,7 @@ class UserAuth(Base):
     __tablename__ = "user_auth"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(128))
+    username: Mapped[str] = mapped_column(String(128), unique=True)
     password: Mapped[str] = mapped_column(String(256))
     created_at: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
     last_login: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
