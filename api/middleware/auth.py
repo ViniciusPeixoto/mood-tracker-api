@@ -26,18 +26,14 @@ class AuthMiddleware:
             return
 
         simpleLogger.info(f"Checking Authentication for {req.path}")
-        username = req.get_header("username")
-        if not username:
-            simpleLogger.debug("No USERNAME in header")
-            raise falcon.HTTPUnauthorized(description="No USERNAME in header.")
-
-        user_auth = self.uow.repository.get_user_auth_by_username(username)
-        if not user_auth:
-            simpleLogger.debug("Invalid username.")
-            raise falcon.HTTPUnauthorized(description="Invalid username.")
+        auth_header = req.get_header("Authorization")
+        if not auth_header:
+            simpleLogger.debug("No Authorization in header")
+            raise falcon.HTTPUnauthorized(description="No Authorization in header.")
 
         try:
-            decoded = jwt.decode(user_auth.token, self.secret_key, algorithms=["HS256"])
+            token = auth_header.split()[1]
+            decoded = jwt.decode(token, self.secret_key, algorithms=["HS256"])
         except IndexError:
             simpleLogger.debug("Token malformed.")
             raise falcon.HTTPUnauthorized(description="Token malformed.")
@@ -47,6 +43,12 @@ class AuthMiddleware:
         except jwt.InvalidTokenError:
             simpleLogger.debug("Invalid token.")
             raise falcon.HTTPUnauthorized(description="Invalid token.")
+
+        username = decoded.get("user_auth_username")
+        user_auth = self.uow.repository.get_user_auth_by_username(username)
+        if not user_auth:
+            simpleLogger.debug("Invalid username.")
+            raise falcon.HTTPUnauthorized(description="Invalid username.")
 
         req.context["username"] = username
         simpleLogger.info("Authentication successful.")

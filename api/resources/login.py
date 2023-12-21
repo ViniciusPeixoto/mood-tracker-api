@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 
 import falcon
 import jwt
+from sqlalchemy.exc import IntegrityError
+from psycopg2.errors import UniqueViolation
 
 from api.config.config import AUTHENTICATION_TTL, get_jwt_secret_key, get_logging_conf
 from api.repository.models import User, UserAuth
@@ -106,7 +108,8 @@ class LoginResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
-        resp.status = falcon.HTTP_NO_CONTENT
+        resp.text = json.dumps({"token": token})
+        resp.status = falcon.HTTP_OK
         simpleLogger.info(f"POST /login : successful")
 
     def on_post_register(self, req: falcon.Request, resp: falcon.Response):
@@ -149,6 +152,16 @@ class LoginResource(Resource):
             user_auth = UserAuth(**body, user=user, token="")
             self.uow.repository.add_user_auth(user_auth)
             self.uow.commit()
+        except IntegrityError as e:
+            if isinstance(e.orig, UniqueViolation):
+                detailedLogger.error("Username already exists.", exc_info=True)
+                resp.text = json.dumps({"error": "Username already exists."})
+                resp.status = falcon.HTTP_FORBIDDEN
+                return
+            detailedLogger.error("Could not add new user to database.", exc_info=True)
+            resp.text = json.dumps({"error": "Could not add new user to database."})
+            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
         except Exception:
             detailedLogger.error("Could not add new user to database.", exc_info=True)
             resp.text = json.dumps({"error": "Could not add new user to database."})
