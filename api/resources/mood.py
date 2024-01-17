@@ -76,7 +76,7 @@ class MoodResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.text = json.dumps(json.loads(str(mood)))
+        resp.text = json.dumps(mood.as_dict())
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"GET /mood/{mood_id} : successful")
 
@@ -99,6 +99,7 @@ class MoodResource(Resource):
             `200 OK`: moods' data successfully retrieved
         """
         simpleLogger.info(f"GET /mood/date/{mood_date}")
+        user = self._get_user(req.context.get("username"))
         moods = None
 
         try:
@@ -132,7 +133,7 @@ class MoodResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_moods = {mood.id: json.loads(str(mood)) for mood in moods}
+        all_moods = {mood.id: mood.as_dict() for mood in moods if mood.user_id == user.id}
 
         resp.text = json.dumps(all_moods)
         resp.status = falcon.HTTP_OK
@@ -240,107 +241,6 @@ class MoodResource(Resource):
 
         resp.status = falcon.HTTP_CREATED
         simpleLogger.info("POST /mood : successful")
-
-    def on_post_date(self, req: falcon.Request, resp: falcon.Response, mood_date: str):
-        """
-        Adds a new mood entry for a given date using pre-existing data for the date.
-
-        `POST` /mood/date/{mood_date}
-
-        Args:
-            mood_date: teh date to fetch data and save Mood
-
-        Responses:
-            `400 Bad Request`: Date could not be parsed
-
-            `500 Server Error`: The server could not create a Mood instance
-
-            `500 Server Error`: Database error
-
-            `201 CREATED`: Mood's data successfully added
-        """
-        simpleLogger.info(f"POST /mood/date/{mood_date}")
-
-        try:
-            simpleLogger.debug("Formatting the date for post mood.")
-            mood_date = datetime.strptime(mood_date, "%Y-%m-%d").date()
-        except Exception as e:
-            detailedLogger.warning(f"Date {mood_date} is malformed!", exc_info=True)
-            resp.text = json.dumps(
-                {
-                    "error": f"Date {mood_date} is malformed! Correct format is YYYY-MM-DD."
-                }
-            )
-            resp.status = falcon.HTTP_BAD_REQUEST
-            return
-
-        try:
-            simpleLogger.debug("Building a Mood instance from multiple dates.")
-            mood = self.build_mood(date=mood_date)
-        except ValueError as e:
-            detailedLogger.warning(
-                f"Date {mood_date} does not contain data!", exc_info=True
-            )
-            resp.text = json.dumps({"error": e.__str__()})
-            resp.status = falcon.HTTP_NOT_FOUND
-            return
-        except Exception as e:
-            detailedLogger.error("Could not build Mood.", exc_info=True)
-            resp.text = json.dumps(
-                {"error": "The server could not build a Mood instance."}
-            )
-            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
-            return
-
-        try:
-            simpleLogger.debug("Trying to add Mood from date data to database.")
-            self.uow.repository.add_mood(mood)
-            self.uow.commit()
-        except Exception as e:
-            detailedLogger.error(
-                "Could not perform add mood from date to database operation!",
-                exc_info=True,
-            )
-            resp.text = json.dumps({"error": "The server could not add the mood."})
-            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
-            return
-
-        resp.status = falcon.HTTP_CREATED
-        simpleLogger.info(f"POST /mood/date/{mood_date}")
-
-    def build_mood(self, date: datetime) -> Mood:
-        """
-        Creates a Mood instance for a given `date` by retrieving data from all parameters
-        for this date.
-
-        Args:
-            date: the date to fetch data and create Mood instance
-
-        Returns:
-            a Mood instance.
-        """
-        simpleLogger.info(f"Building Mood with data from {date}")
-        empty_params = []
-        mood = Mood(date=date)
-
-        for param in ["humor", "water_intake", "exercises", "food_habits"]:
-            function_name = f"get_{param}_by_date"
-            db_function = getattr(self.uow.repository, function_name)
-
-            param_instances = db_function(date)
-            if not param_instances.first():
-                empty_params.append(param)
-                continue
-
-            for param_instance in param_instances:
-                setattr(mood, param, param_instance)
-
-        if empty_params:
-            raise ValueError(
-                f"Date {date} does not contain data for params {empty_params}."
-            )
-
-        return mood
 
     def on_patch(self, req: falcon.Request, resp: falcon.Response, mood_id: int):
         """

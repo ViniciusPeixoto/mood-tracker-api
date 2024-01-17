@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-from sqlalchemy.orm import Query, Session
+from sqlalchemy.orm import Query, Session, joinedload
 
 from api.repository.models import Exercises, Food, Humor, Mood, User, UserAuth, Water
 
@@ -316,10 +316,31 @@ class SQLRepository(AbstractRepository):
         self.session.add(mood)
 
     def _get_mood_by_id(self, mood_id: int) -> Mood:
-        return self.session.query(Mood).filter_by(id=mood_id).first()
+        mood = (
+            self.session.query(Mood)
+            .options(
+                joinedload(Mood.exercises),
+                joinedload(Mood.food_habits),
+                joinedload(Mood.humors),
+                joinedload(Mood.water_intakes)
+            )
+            .filter_by(id=mood_id)
+            .first()
+        )
+        return mood
 
     def _get_mood_by_date(self, mood_date: datetime) -> Query[Mood]:
-        return self.session.query(Mood).filter_by(date=mood_date)
+        moods_query = (
+            self.session.query(Mood)
+            .options(
+                joinedload(Mood.exercises),
+                joinedload(Mood.food_habits),
+                joinedload(Mood.humors),
+                joinedload(Mood.water_intakes)
+            )
+            .filter_by(date=mood_date)
+        )
+        return moods_query
 
     def _delete_mood(self, mood: Mood) -> None:
         self.session.delete(mood)

@@ -51,6 +51,7 @@ class ExercisesResource(Resource):
             `200 OK`: Exercise's data successfully retrieved
         """
         simpleLogger.info(f"GET /exercises/{exercises_id}")
+        user = self._get_user(req.context.get("username"))
         exercises = None
 
         try:
@@ -75,7 +76,15 @@ class ExercisesResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.text = json.dumps(json.loads(str(exercises)))
+        if user.id != exercises.mood.user_id:
+            simpleLogger.debug(f"Invalid user for exercise {exercises_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for exercise {exercises_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
+            return
+
+        resp.text = json.dumps(exercises.as_dict())
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"GET /exercises/{exercises_id} : successful")
 
@@ -100,6 +109,7 @@ class ExercisesResource(Resource):
             `200 OK`: Exercises' data successfully retrieved
         """
         simpleLogger.info(f"GET /exercises/date/{exercises_date}")
+        user = self._get_user(req.context.get("username"))
         exercises = None
 
         try:
@@ -139,7 +149,9 @@ class ExercisesResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_exercises = {exercise.id: json.loads(str(exercise)) for exercise in exercises}
+        all_exercises = {
+            exercise.id: exercise.as_dict() for exercise in exercises if exercise.mood.user_id == user.id
+        }
 
         resp.text = json.dumps(all_exercises)
         resp.status = falcon.HTTP_OK
@@ -185,9 +197,12 @@ class ExercisesResource(Resource):
             resp.text = json.dumps({"error": "Missing Exercises parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+        exercise_date = body.get("date") or str(datetime.today().date())
+        user = self._get_user(req.context.get("username"))
+        mood = self._get_mood_from_date(exercise_date, user.id)
 
         try:
-            exercises = Exercises(**body)
+            exercise = Exercises(**body, mood_id=mood.id)
         except Exception as e:
             detailedLogger.error("Could not create a Exercise instance!", exc_info=True)
             resp.text = json.dumps(
@@ -200,7 +215,7 @@ class ExercisesResource(Resource):
 
         try:
             simpleLogger.debug("Trying to add Exercises data to database.")
-            self.uow.repository.add_exercises(exercises)
+            self.uow.repository.add_exercises(exercise)
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
@@ -230,6 +245,7 @@ class ExercisesResource(Resource):
             `200 OK`: Exercises's data successfully updated
         """
         simpleLogger.info(f"PATCH /exercises/{exercises_id}")
+        user = self._get_user(req.context.get("username"))
         exercises = None
 
         try:
@@ -244,6 +260,22 @@ class ExercisesResource(Resource):
                 {"error": "The server could not fetch the exercises."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        if not exercises:
+            simpleLogger.debug(f"No Exercises data with id {exercises_id}.")
+            resp.text = json.dumps(
+                {"error": f"No Exercises data with id {exercises_id}."}
+            )
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        if user.id != exercises.mood.user_id:
+            simpleLogger.debug(f"Invalid user for exercise {exercises_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for exercise {exercises_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
             return
 
         body = req.stream.read(req.content_length or 0)
@@ -279,7 +311,7 @@ class ExercisesResource(Resource):
 
         updated_exercises = self.uow.repository.get_exercises_by_id(exercises_id)
 
-        resp.text = json.dumps(json.loads(str(updated_exercises)))
+        resp.text = json.dumps(updated_exercises.as_dict())
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"PATCH /exercises/{exercises_id} : successful")
 
@@ -300,6 +332,7 @@ class ExercisesResource(Resource):
             `204 No Content`: Exercise's data successfully deleted
         """
         simpleLogger.info(f"DELETE /exercises/{exercises_id}")
+        user = self._get_user(req.context.get("username"))
         exercise = None
 
         try:
@@ -322,6 +355,14 @@ class ExercisesResource(Resource):
                 {"error": f"No Exercise data with id {exercises_id}."}
             )
             resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        if user.id != exercise.mood.user_id:
+            simpleLogger.debug(f"Invalid user for exercise {exercises_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for exercise {exercises_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
             return
 
         try:
@@ -362,13 +403,16 @@ class ExercisesResource(Resource):
             `204 No Content`: Exercises' data successfully deleted
         """
         simpleLogger.info(f"DELETE /exercises/date/{exercises_date}")
+        user = self._get_user(req.context.get("username"))
         exercises = None
 
         try:
             simpleLogger.debug("Formatting the date for exercise.")
             exercises_date = datetime.strptime(exercises_date, "%Y-%m-%d").date()
         except Exception as e:
-            detailedLogger.warning(f"Date {exercises_date} is malformed!", exc_info=True)
+            detailedLogger.warning(
+                f"Date {exercises_date} is malformed!", exc_info=True
+            )
             resp.text = json.dumps(
                 {
                     "error": f"Date {exercises_date} is malformed! Correct format is YYYY-MM-DD."
@@ -402,6 +446,14 @@ class ExercisesResource(Resource):
         try:
             simpleLogger.debug("Deleting exercises from database using date.")
             for exercise in exercises:
+                if user.id != exercise.mood.user_id:
+                    simpleLogger.debug(f"Invalid user for exercise {exercise.id}.")
+                    resp.text = json.dumps(
+                        {"error": f"Invalid user for exercise {exercise.id}."}
+                    )
+                    resp.status = falcon.HTTP_FORBIDDEN
+                    self.uow.rollback()
+                    return
                 self.uow.repository.delete_exercises(exercise)
             self.uow.commit()
         except Exception as e:
