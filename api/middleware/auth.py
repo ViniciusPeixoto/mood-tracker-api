@@ -15,7 +15,6 @@ detailedLogger = logging.getLogger("detailedLogger")
 
 
 class AuthMiddleware:
-
     def __init__(self, uow: AbstractUnitOfWork) -> None:
         self.uow = uow
         self.ignore_paths = ["/login", "/register"]

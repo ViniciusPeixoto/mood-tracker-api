@@ -322,7 +322,7 @@ class SQLRepository(AbstractRepository):
                 joinedload(Mood.exercises),
                 joinedload(Mood.food_habits),
                 joinedload(Mood.humors),
-                joinedload(Mood.water_intakes)
+                joinedload(Mood.water_intakes),
             )
             .filter_by(id=mood_id)
             .first()
@@ -336,7 +336,7 @@ class SQLRepository(AbstractRepository):
                 joinedload(Mood.exercises),
                 joinedload(Mood.food_habits),
                 joinedload(Mood.humors),
-                joinedload(Mood.water_intakes)
+                joinedload(Mood.water_intakes),
             )
             .filter_by(date=mood_date)
         )

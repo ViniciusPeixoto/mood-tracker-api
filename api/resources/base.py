@@ -2,9 +2,8 @@ import logging
 import logging.config
 
 from api.config.config import get_logging_conf
-from api.repository.models import User, Mood
+from api.repository.models import Mood, User
 from api.repository.unit_of_work import AbstractUnitOfWork
-
 
 logging.config.fileConfig(get_logging_conf())
 simpleLogger = logging.getLogger("simpleLogger")
@@ -29,9 +28,12 @@ class Resource:
 
         return self.uow.repository.get_user_by_id(user_id)
 
-
     def _get_mood_from_date(self, date: str, user_id: int) -> Mood:
-        mood = self.uow.repository.get_mood_by_date(date).filter_by(user_id=user_id).first()
+        mood = (
+            self.uow.repository.get_mood_by_date(date)
+            .filter_by(user_id=user_id)
+            .first()
+        )
         if mood:
             return mood
 
@@ -40,8 +42,10 @@ class Resource:
             self.uow.repository.add_mood(mood)
             self.uow.commit()
         except Exception as e:
-            detailedLogger.error(
-                "Could not perform add mood operation!", exc_info=True
-            )
+            detailedLogger.error("Could not perform add mood operation!", exc_info=True)
             return
-        return self.uow.repository.get_mood_by_date(date).filter_by(user_id=user_id).first()
+        return (
+            self.uow.repository.get_mood_by_date(date)
+            .filter_by(user_id=user_id)
+            .first()
+        )

@@ -7,7 +7,13 @@ from api.repository.models import Humor
 from api.repository.unit_of_work import AbstractUnitOfWork
 
 
-@pytest.mark.parametrize("humor_id, status_code", [(11, 404), (1, 200),])
+@pytest.mark.parametrize(
+    "humor_id, status_code",
+    [
+        (11, 404),
+        (1, 200),
+    ],
+)
 def test_get(client, humor_id, status_code, headers):
     result = client.simulate_get(f"/humor/{humor_id}", headers=headers)
 
@@ -105,7 +111,7 @@ def test_update(client, body, status_code, headers, uow: AbstractUnitOfWork):
         "value": "1",
         "description": "Humor for updating",
         "health_based": True,
-        "mood_id": 1
+        "mood_id": 1,
     }
     humor = Humor(**humor_params)
     humor_id = None
@@ -133,7 +139,7 @@ def test_delete(client, headers, uow: AbstractUnitOfWork):
         value="1",
         description="Humor for deletion",
         health_based=True,
-        mood_id=1
+        mood_id=1,
     )
     humor_id = None
     with uow:
@@ -156,15 +162,15 @@ def test_delete_date(client, headers, uow: AbstractUnitOfWork):
             value="1",
             description="Humor for deletion",
             health_based=True,
-            mood_id=1
+            mood_id=1,
         ),
         Humor(
             date="2012-12-21",
             value="1",
             description="Humor for deletion",
             health_based=True,
-            mood_id=1
-        )
+            mood_id=1,
+        ),
     ]
     with uow:
         for humor in humors:

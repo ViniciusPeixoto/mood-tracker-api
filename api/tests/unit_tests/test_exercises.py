@@ -95,7 +95,7 @@ def test_update(client, body, status_code, headers, uow: AbstractUnitOfWork):
         "date": "2012-12-21",
         "minutes": "1",
         "description": "Exercises for updating",
-        "mood_id": 1
+        "mood_id": 1,
     }
     exercises = Exercises(**exercises_params)
     exercises_id = None
@@ -105,16 +105,18 @@ def test_update(client, body, status_code, headers, uow: AbstractUnitOfWork):
 
         exercises_id = uow.repository.get_exercises_by_date("2012-12-21").first().id
 
-        result = client.simulate_patch(f"/exercises/{exercises_id}", json=body, headers=headers)
+        result = client.simulate_patch(
+            f"/exercises/{exercises_id}", json=body, headers=headers
+        )
 
     assert result.status_code == status_code
 
     if result.status_code < 400:
         exercises_params.update(body)
         with uow:
-            assert uow.repository.get_exercises_by_date("2012-12-21").first() == Exercises(
-                **exercises_params
-            )
+            assert uow.repository.get_exercises_by_date(
+                "2012-12-21"
+            ).first() == Exercises(**exercises_params)
 
 
 def test_delete(client, headers, uow: AbstractUnitOfWork):
@@ -138,10 +140,16 @@ def test_delete(client, headers, uow: AbstractUnitOfWork):
 def test_delete_date(client, headers, uow: AbstractUnitOfWork):
     exercises = [
         Exercises(
-        date="2012-12-21", minutes=10, description="First Exercise for deletion", mood_id=1
+            date="2012-12-21",
+            minutes=10,
+            description="First Exercise for deletion",
+            mood_id=1,
         ),
         Exercises(
-        date="2012-12-21", minutes=15, description="Second Exercise for deletion", mood_id=1
+            date="2012-12-21",
+            minutes=15,
+            description="Second Exercise for deletion",
+            mood_id=1,
         ),
     ]
     with uow:

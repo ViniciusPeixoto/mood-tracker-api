@@ -7,7 +7,13 @@ from api.repository.models import Exercises, Food, Humor, Mood, Water
 from api.repository.unit_of_work import AbstractUnitOfWork
 
 
-@pytest.mark.parametrize("mood_id, status_code", [(11, 404), (1, 200),])
+@pytest.mark.parametrize(
+    "mood_id, status_code",
+    [
+        (11, 404),
+        (1, 200),
+    ],
+)
 def test_get(client, mood_id, status_code, headers):
     result = client.simulate_get(f"/mood/{mood_id}", headers=headers)
 
@@ -189,36 +195,44 @@ def test_post(client, body, status_code, headers, uow: AbstractUnitOfWork):
 def test_update(client, body, status_code, headers, uow: AbstractUnitOfWork):
     mood_params = {
         "date": "2012-12-21",
-        "humors": [Humor(
-            **{
-                "date": "2012-12-21",
-                "value": 1,
-                "description": "Humor for updating.",
-                "health_based": True,
-            }
-        )],
-        "water_intakes": [Water(
-            **{
-                "date": "2012-12-21",
-                "milliliters": 1,
-                "description": "Consumo de água for updating.",
-                "pee": True,
-            }
-        )],
-        "exercises": [Exercises(
-            **{
-                "date": "2012-12-21",
-                "minutes": 1,
-                "description": "Exercícios for updating.",
-            }
-        )],
-        "food_habits": [Food(
-            **{
-                "date": "2012-12-21",
-                "value": 1,
-                "description": "Alimentação for updating.",
-            }
-        )],
+        "humors": [
+            Humor(
+                **{
+                    "date": "2012-12-21",
+                    "value": 1,
+                    "description": "Humor for updating.",
+                    "health_based": True,
+                }
+            )
+        ],
+        "water_intakes": [
+            Water(
+                **{
+                    "date": "2012-12-21",
+                    "milliliters": 1,
+                    "description": "Consumo de água for updating.",
+                    "pee": True,
+                }
+            )
+        ],
+        "exercises": [
+            Exercises(
+                **{
+                    "date": "2012-12-21",
+                    "minutes": 1,
+                    "description": "Exercícios for updating.",
+                }
+            )
+        ],
+        "food_habits": [
+            Food(
+                **{
+                    "date": "2012-12-21",
+                    "value": 1,
+                    "description": "Alimentação for updating.",
+                }
+            )
+        ],
     }
     mood = Mood(**mood_params, user_id=1)
     mood_id = None
@@ -235,36 +249,44 @@ def test_update(client, body, status_code, headers, uow: AbstractUnitOfWork):
     if result.status_code < 400:
         mood_params = {
             "date": "2012-12-21",
-            "humors": [Humor(
-                **{
-                    "date": "2012-12-21",
-                    "value": 1,
-                    "description": "Humor for updating.",
-                    "health_based": True,
-                }
-            )],
-            "water_intakes": [Water(
-                **{
-                    "date": "2012-12-21",
-                    "milliliters": 1,
-                    "description": "Consumo de água for updating.",
-                    "pee": True,
-                }
-            )],
-            "exercises": [Exercises(
-                **{
-                    "date": "2012-12-21",
-                    "minutes": 1,
-                    "description": "Exercícios for updating.",
-                }
-            )],
-            "food_habits": [Food(
-                **{
-                    "date": "2012-12-21",
-                    "value": 1,
-                    "description": "Alimentação for updating.",
-                }
-            )],
+            "humors": [
+                Humor(
+                    **{
+                        "date": "2012-12-21",
+                        "value": 1,
+                        "description": "Humor for updating.",
+                        "health_based": True,
+                    }
+                )
+            ],
+            "water_intakes": [
+                Water(
+                    **{
+                        "date": "2012-12-21",
+                        "milliliters": 1,
+                        "description": "Consumo de água for updating.",
+                        "pee": True,
+                    }
+                )
+            ],
+            "exercises": [
+                Exercises(
+                    **{
+                        "date": "2012-12-21",
+                        "minutes": 1,
+                        "description": "Exercícios for updating.",
+                    }
+                )
+            ],
+            "food_habits": [
+                Food(
+                    **{
+                        "date": "2012-12-21",
+                        "value": 1,
+                        "description": "Alimentação for updating.",
+                    }
+                )
+            ],
         }
         params_classes = {
             "humors": Humor,
@@ -284,29 +306,33 @@ def test_update(client, body, status_code, headers, uow: AbstractUnitOfWork):
 
 
 def test_delete(client, headers, uow: AbstractUnitOfWork):
-    water_intake = [Water(
-        date="2012-12-21",
-        milliliters="1",
-        description="Water Intake for deletion",
-        pee=True,
-    )]
+    water_intake = [
+        Water(
+            date="2012-12-21",
+            milliliters="1",
+            description="Water Intake for deletion",
+            pee=True,
+        )
+    ]
     food = [Food(date="2012-12-21", value="1", description="Food for deletion")]
-    exercise = [Exercises(
-        date="2012-12-21", minutes=10, description="Exercise for deletion"
-    )]
-    humor = [Humor(
-        date="2012-12-21",
-        value="1",
-        description="Humor for deletion",
-        health_based=True,
-    )]
+    exercise = [
+        Exercises(date="2012-12-21", minutes=10, description="Exercise for deletion")
+    ]
+    humor = [
+        Humor(
+            date="2012-12-21",
+            value="1",
+            description="Humor for deletion",
+            health_based=True,
+        )
+    ]
     mood = Mood(
         date="2012-12-21",
         humors=humor,
         food_habits=food,
         exercises=exercise,
         water_intakes=water_intake,
-        user_id=1
+        user_id=1,
     )
     mood_id = None
     with uow:

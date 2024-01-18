@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 
 import falcon
 import jwt
-from sqlalchemy.exc import IntegrityError
 from psycopg2.errors import UniqueViolation
+from sqlalchemy.exc import IntegrityError
 
 from api.config.config import get_auth_ttl, get_jwt_secret_key, get_logging_conf
 from api.repository.models import User, UserAuth
@@ -88,9 +88,7 @@ class LoginResource(Resource):
         self.uow.repository.update_user_auth(user_auth, {"last_login": datetime.now()})
         login_data = {
             "exp": str(
-                int(
-                    (datetime.now() + timedelta(minutes=get_auth_ttl())).timestamp()
-                )
+                int((datetime.now() + timedelta(minutes=get_auth_ttl())).timestamp())
             ),
             "user_auth_id": str(user_auth.id),
             "user_auth_username": str(user_auth.username),

@@ -1,7 +1,7 @@
 from datetime import date
 
-import pytest
 import jwt
+import pytest
 
 from api.config.config import get_jwt_secret_key
 from api.repository.models import User, UserAuth
@@ -21,7 +21,16 @@ def test_user_cannot_access_items_from_another_user(client, uow: AbstractUnitOfW
 
     with uow:
         uow.repository.add_user(User())
-        uow.repository.add_user(UserAuth(username="new_username", password="new_password", created_at=today, last_login=today, token=token, user_id=2))
+        uow.repository.add_user(
+            UserAuth(
+                username="new_username",
+                password="new_password",
+                created_at=today,
+                last_login=today,
+                token=token,
+                user_id=2,
+            )
+        )
         uow.commit()
 
     headers = {"Authorization": f"Bearer: {token}"}
@@ -35,5 +44,7 @@ def test_user_cannot_access_items_from_another_user(client, uow: AbstractUnitOfW
         result = client.simulate_delete(f"{endpoint}/1", headers=headers)
         assert result.status_code == 403
 
-        result = client.simulate_delete(f"{endpoint}/date/{str(today)}", headers=headers)
+        result = client.simulate_delete(
+            f"{endpoint}/date/{str(today)}", headers=headers
+        )
         assert result.status_code == 403

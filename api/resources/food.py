@@ -76,9 +76,7 @@ class FoodResource(Resource):
 
         if user.id != food.mood.user_id:
             simpleLogger.debug(f"Invalid user for food {food_id}.")
-            resp.text = json.dumps(
-                {"error": f"Invalid user for food {food_id}."}
-            )
+            resp.text = json.dumps({"error": f"Invalid user for food {food_id}."})
             resp.status = falcon.HTTP_FORBIDDEN
             return
 
@@ -139,7 +137,9 @@ class FoodResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_foods = {food.id: food.as_dict() for food in foods if food.mood.user_id == user.id}
+        all_foods = {
+            food.id: food.as_dict() for food in foods if food.mood.user_id == user.id
+        }
 
         resp.text = json.dumps(all_foods)
         resp.status = falcon.HTTP_OK
@@ -255,20 +255,15 @@ class FoodResource(Resource):
 
         if not food_habits:
             simpleLogger.debug(f"No Food Habits data with id {food_id}.")
-            resp.text = json.dumps(
-                {"error": f"No Food Habits data with id {food_id}."}
-            )
+            resp.text = json.dumps({"error": f"No Food Habits data with id {food_id}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
         if user.id != food_habits.mood.user_id:
             simpleLogger.debug(f"Invalid user for food {food_id}.")
-            resp.text = json.dumps(
-                {"error": f"Invalid user for food {food_id}."}
-            )
+            resp.text = json.dumps({"error": f"Invalid user for food {food_id}."})
             resp.status = falcon.HTTP_FORBIDDEN
             return
-
 
         body = req.stream.read(req.content_length or 0)
         body = json.loads(body.decode("utf-8"))
@@ -347,9 +342,7 @@ class FoodResource(Resource):
 
         if user.id != food.mood.user_id:
             simpleLogger.debug(f"Invalid user for food {food_id}.")
-            resp.text = json.dumps(
-                {"error": f"Invalid user for food {food_id}."}
-            )
+            resp.text = json.dumps({"error": f"Invalid user for food {food_id}."})
             resp.status = falcon.HTTP_FORBIDDEN
             return
 

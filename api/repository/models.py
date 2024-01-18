@@ -1,7 +1,6 @@
 import json
-
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
 
 from sqlalchemy import Boolean, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -46,7 +45,9 @@ class Humor(Base):
         )
 
     def as_dict(self) -> dict:
-        return {col.name: str(getattr(self, col.name)) for col in self.__table__.columns}
+        return {
+            col.name: str(getattr(self, col.name)) for col in self.__table__.columns
+        }
 
 
 class Water(Base):
@@ -84,7 +85,10 @@ class Water(Base):
         )
 
     def as_dict(self) -> dict:
-        return {col.name: str(getattr(self, col.name)) for col in self.__table__.columns}
+        return {
+            col.name: str(getattr(self, col.name)) for col in self.__table__.columns
+        }
+
 
 class Exercises(Base):
     __tablename__ = "user_exercises"
@@ -113,7 +117,9 @@ class Exercises(Base):
         )
 
     def as_dict(self) -> dict:
-        return {col.name: str(getattr(self, col.name)) for col in self.__table__.columns}
+        return {
+            col.name: str(getattr(self, col.name)) for col in self.__table__.columns
+        }
 
 
 class Food(Base):
@@ -148,14 +154,18 @@ class Food(Base):
         )
 
     def as_dict(self) -> dict:
-        return {col.name: str(getattr(self, col.name)) for col in self.__table__.columns}
+        return {
+            col.name: str(getattr(self, col.name)) for col in self.__table__.columns
+        }
 
 
 class Mood(Base):
     __tablename__ = "user_mood"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[Date] = mapped_column(Date, default=datetime.today().date(), unique=True)
+    date: Mapped[Date] = mapped_column(
+        Date, default=datetime.today().date(), unique=True
+    )
 
     humors: Mapped[List["Humor"]] = relationship(
         back_populates="mood", cascade="all, delete-orphan"
@@ -206,7 +216,7 @@ class Mood(Base):
         d.pop("_sa_instance_state")
         for key in d:
             if key not in ["id", "user_id", "date"]:
-                d[key] =[item.as_dict() for item in d[key]]
+                d[key] = [item.as_dict() for item in d[key]]
             else:
                 d[key] = str(d[key])
         return d
@@ -231,7 +241,9 @@ class User(Base):
         return f'User("id"="{self.id}")'
 
     def as_dict(self) -> dict:
-        return {col.name: str(getattr(self, col.name)) for col in self.__table__.columns}
+        return {
+            col.name: str(getattr(self, col.name)) for col in self.__table__.columns
+        }
 
 
 class UserAuth(Base):
