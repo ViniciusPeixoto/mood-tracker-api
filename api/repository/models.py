@@ -206,6 +206,7 @@ class Mood(Base):
     date: Mapped[Date] = mapped_column(
         Date, default=datetime.today().date(), unique=True
     )
+    score: Mapped[int] = mapped_column(Integer, default=0)
 
     humors: Mapped[List["Humor"]] = relationship(
         back_populates="mood", cascade="all, delete-orphan"
@@ -234,6 +235,7 @@ class Mood(Base):
         return f'{{\
             "id":"{self.id}", \
             "date":"{self.date}", \
+            "score: {self.score}", \
             "humor":{humors}, \
             "water_intake":{water_intakes}, \
             "exercises":{exercises}, \
@@ -241,12 +243,13 @@ class Mood(Base):
         }}'
 
     def __repr__(self) -> str:
-        return f'Mood("id"="{self.id}", "date"="{self.date}", "humor"={self.humors}, "water_intake"={self.water_intakes}, "exercises"={self.exercises}, "food_habits"={self.food_habits})'
+        return f'Mood("id"="{self.id}", "date"="{self.date}", "score"="{self.score}", "humor"={self.humors}, "water_intake"={self.water_intakes}, "exercises"={self.exercises}, "food_habits"={self.food_habits})'
 
     def __eq__(self, other: object) -> bool:
         return all(
             [
                 str(self.date) == str(other.date),
+                self.score == other.score,
                 self.humors == other.humors,
                 self.water_intakes == other.water_intakes,
                 self.exercises == other.exercises,
@@ -258,7 +261,7 @@ class Mood(Base):
         d = self.__dict__.copy()
         d.pop("_sa_instance_state")
         for key in d:
-            if key not in ["id", "user_id", "date"]:
+            if key not in ["id", "user_id", "date", "score"]:
                 d[key] = [item.as_dict() for item in d[key]]
             else:
                 d[key] = str(d[key])

@@ -287,6 +287,7 @@ def test_update(client, body, status_code, headers, uow: AbstractUnitOfWork):
     if result.status_code < 400:
         mood_params = {
             "date": "2012-12-21",
+            "score": 0,
             "humors": [
                 Humor(
                     **{
