@@ -79,9 +79,7 @@ class MoodResource(Resource):
 
         if user.id != mood.user_id:
             simpleLogger.debug(f"Invalid user for mood {mood_id}.")
-            resp.text = json.dumps(
-                {"error": f"Invalid user for mood {mood_id}."}
-            )
+            resp.text = json.dumps({"error": f"Invalid user for mood {mood_id}."})
             resp.status = falcon.HTTP_FORBIDDEN
             return
 
@@ -142,7 +140,9 @@ class MoodResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_moods = {mood.id: mood.as_dict() for mood in moods if mood.user_id == user.id}
+        all_moods = {
+            mood.id: mood.as_dict() for mood in moods if mood.user_id == user.id
+        }
 
         resp.text = json.dumps(all_moods)
         resp.status = falcon.HTTP_OK
@@ -294,9 +294,7 @@ class MoodResource(Resource):
 
         if user.id != mood.user_id:
             simpleLogger.debug(f"Invalid user for mood {mood_id}.")
-            resp.text = json.dumps(
-                {"error": f"Invalid user for mood {mood_id}."}
-            )
+            resp.text = json.dumps({"error": f"Invalid user for mood {mood_id}."})
             resp.status = falcon.HTTP_FORBIDDEN
             return
 
@@ -340,7 +338,9 @@ class MoodResource(Resource):
                 corrected_key = key
                 if key in ["humors", "water_intakes"]:
                     corrected_key = key[:-1]
-                update_function = getattr(self.uow.repository, f"update_{corrected_key}")
+                update_function = getattr(
+                    self.uow.repository, f"update_{corrected_key}"
+                )
                 update_param = getattr(mood, key)
                 simpleLogger.debug(
                     f"Updating {key.replace('_', ' ')} from database using id."
@@ -400,9 +400,7 @@ class MoodResource(Resource):
 
         if user.id != mood.user_id:
             simpleLogger.debug(f"Invalid user for mood {mood_id}.")
-            resp.text = json.dumps(
-                {"error": f"Invalid user for mood {mood_id}."}
-            )
+            resp.text = json.dumps({"error": f"Invalid user for mood {mood_id}."})
             resp.status = falcon.HTTP_FORBIDDEN
             return
 

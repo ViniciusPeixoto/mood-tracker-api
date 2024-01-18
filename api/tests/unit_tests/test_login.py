@@ -1,4 +1,5 @@
 from datetime import datetime
+
 import pytest
 
 from api.repository.unit_of_work import AbstractUnitOfWork
@@ -12,22 +13,22 @@ from api.repository.unit_of_work import AbstractUnitOfWork
             400,
         ),
         (
-            {"user":"test_username","pass":"test_password"},
+            {"user": "test_username", "pass": "test_password"},
             400,
         ),
         (
-            {"username":"test_username1","password":"test_password"},
+            {"username": "test_username1", "password": "test_password"},
             404,
         ),
         (
-            {"username":"test_username", "password":"test_password1"},
+            {"username": "test_username", "password": "test_password1"},
             401,
         ),
         (
-            {"username":"test_username", "password":"test_password"},
+            {"username": "test_username", "password": "test_password"},
             200,
-        )
-    ]
+        ),
+    ],
 )
 def test_post_login(client, body, status_code):
     result = client.simulate_post(f"/login", json=body)
@@ -43,18 +44,18 @@ def test_post_login(client, body, status_code):
             400,
         ),
         (
-            {"user":"test_username","pass":"test_password"},
+            {"user": "test_username", "pass": "test_password"},
             400,
         ),
         (
-            {"username":"test_username","password":"test_password"},
+            {"username": "test_username", "password": "test_password"},
             403,
         ),
         (
-            {"username":"test_new_username", "password":"test_new_password"},
+            {"username": "test_new_username", "password": "test_new_password"},
             204,
-        )
-    ]
+        ),
+    ],
 )
 def test_post_register(client, body, status_code, uow: AbstractUnitOfWork):
     result = client.simulate_post(f"/register", json=body)

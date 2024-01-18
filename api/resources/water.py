@@ -156,7 +156,8 @@ class WaterResource(Resource):
 
         all_water_intakes = {
             water_intake.id: water_intake.as_dict()
-            for water_intake in water_intakes if water_intake.mood.user_id == user.id
+            for water_intake in water_intakes
+            if water_intake.mood.user_id == user.id
         }
 
         resp.text = json.dumps(all_water_intakes)
@@ -471,7 +472,9 @@ class WaterResource(Resource):
             simpleLogger.debug("Deleting water_intake from database using date.")
             for water_intake in water_intakes:
                 if user.id != water_intake.mood.user_id:
-                    simpleLogger.debug(f"Invalid user for water intake {water_intake.id}.")
+                    simpleLogger.debug(
+                        f"Invalid user for water intake {water_intake.id}."
+                    )
                     resp.text = json.dumps(
                         {"error": f"Invalid user for water intake {water_intake.id}."}
                     )

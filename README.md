@@ -54,7 +54,7 @@ For all cases, `date` is an optional argument, that defaults to `today` if left 
 Endpoint `2` is for actions targeted to a specific Resource. They are `HTTP GET`, `HTTP PATCH` and `HTTP DELETE`. For all of them, you have to pass the `resource_id`. For example, if you want to get the data from Exercises #314, your endpoint should look like this:
 > /exercises/314
 
-Endpoint `3` is for actions that target multiple resources at once. They are `HTTP GET` and `HTTP DELETE`. The Resource `Mood` is the only one that can interact with this endpoint for `HTTP POST`. When done so, the API will gather all other Resources from the date passed and build a new `Mood` with them, and then save into the database. For the other HTTP Requests, they will return and delete, respectively, all entries of the Resource in the database for the date passed.
+Endpoint `3` is for actions that target multiple resources at once. They are `HTTP GET` and `HTTP DELETE`. They will return and delete, respectively, all entries of the Resource in the database for the date passed.
 
 ## Tests
 

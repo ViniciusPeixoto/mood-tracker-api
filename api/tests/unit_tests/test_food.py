@@ -7,7 +7,13 @@ from api.repository.models import Food
 from api.repository.unit_of_work import AbstractUnitOfWork
 
 
-@pytest.mark.parametrize("food_id, status_code", [(11, 404), (1, 200),])
+@pytest.mark.parametrize(
+    "food_id, status_code",
+    [
+        (11, 404),
+        (1, 200),
+    ],
+)
 def test_get(client, food_id, status_code, headers):
     result = client.simulate_get(f"/food/{food_id}", headers=headers)
 
@@ -93,7 +99,7 @@ def test_update(client, body, status_code, headers, uow: AbstractUnitOfWork):
         "date": "2012-12-21",
         "value": "1",
         "description": "Food for updating",
-        "mood_id": 1
+        "mood_id": 1,
     }
     food_habits = Food(**food_habits_params)
     food_id = None
@@ -117,7 +123,9 @@ def test_update(client, body, status_code, headers, uow: AbstractUnitOfWork):
 
 
 def test_delete(client, headers, uow: AbstractUnitOfWork):
-    food = Food(date="2012-12-21", value="1", description="Food for deletion", mood_id=1)
+    food = Food(
+        date="2012-12-21", value="1", description="Food for deletion", mood_id=1
+    )
     food_id = None
 
     with uow:
@@ -135,8 +143,18 @@ def test_delete(client, headers, uow: AbstractUnitOfWork):
 
 def test_delete_date(client, headers, uow: AbstractUnitOfWork):
     foods = [
-        Food(date="2012-12-21", value="1", description="First Food for deletion", mood_id=1),
-        Food(date="2012-12-21", value="2", description="Second Food for deletion", mood_id=1)
+        Food(
+            date="2012-12-21",
+            value="1",
+            description="First Food for deletion",
+            mood_id=1,
+        ),
+        Food(
+            date="2012-12-21",
+            value="2",
+            description="Second Food for deletion",
+            mood_id=1,
+        ),
     ]
 
     with uow:

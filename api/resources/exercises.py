@@ -150,7 +150,9 @@ class ExercisesResource(Resource):
             return
 
         all_exercises = {
-            exercise.id: exercise.as_dict() for exercise in exercises if exercise.mood.user_id == user.id
+            exercise.id: exercise.as_dict()
+            for exercise in exercises
+            if exercise.mood.user_id == user.id
         }
 
         resp.text = json.dumps(all_exercises)

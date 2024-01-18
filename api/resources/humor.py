@@ -75,9 +75,7 @@ class HumorResource(Resource):
 
         if user.id != humor.mood.user_id:
             simpleLogger.debug(f"Invalid user for humor {humor_id}.")
-            resp.text = json.dumps(
-                {"error": f"Invalid user for humor {humor_id}."}
-            )
+            resp.text = json.dumps({"error": f"Invalid user for humor {humor_id}."})
             resp.status = falcon.HTTP_FORBIDDEN
             return
 
@@ -138,7 +136,11 @@ class HumorResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_humors = {humor.id: json.loads(str(humor)) for humor in humors if humor.mood.user_id == user.id}
+        all_humors = {
+            humor.id: json.loads(str(humor))
+            for humor in humors
+            if humor.mood.user_id == user.id
+        }
 
         resp.text = json.dumps(all_humors)
         resp.status = falcon.HTTP_OK
@@ -250,20 +252,15 @@ class HumorResource(Resource):
 
         if not humor:
             simpleLogger.debug(f"No Humor data with id {humor_id}.")
-            resp.text = json.dumps(
-                {"error": f"No Humor data with id {humor_id}."}
-            )
+            resp.text = json.dumps({"error": f"No Humor data with id {humor_id}."})
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
         if user.id != humor.mood.user_id:
             simpleLogger.debug(f"Invalid user for exercise {humor_id}.")
-            resp.text = json.dumps(
-                {"error": f"Invalid user for exercise {humor_id}."}
-            )
+            resp.text = json.dumps({"error": f"Invalid user for exercise {humor_id}."})
             resp.status = falcon.HTTP_FORBIDDEN
             return
-
 
         body = req.stream.read(req.content_length or 0)
         body = json.loads(body.decode("utf-8"))
@@ -339,9 +336,7 @@ class HumorResource(Resource):
 
         if user.id != humor.mood.user_id:
             simpleLogger.debug(f"Invalid user for humor {humor_id}.")
-            resp.text = json.dumps(
-                {"error": f"Invalid user for humor {humor_id}."}
-            )
+            resp.text = json.dumps({"error": f"Invalid user for humor {humor_id}."})
             resp.status = falcon.HTTP_FORBIDDEN
             return
 
