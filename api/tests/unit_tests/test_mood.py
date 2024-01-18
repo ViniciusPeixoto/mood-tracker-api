@@ -3,7 +3,7 @@ from datetime import date, timedelta
 import pytest
 from sqlalchemy import select
 
-from api.repository.models import Exercises, Food, Humor, Mood, Water
+from api.repository.models import Exercises, Food, Humor, Mood, Sleep, Water
 from api.repository.unit_of_work import AbstractUnitOfWork
 
 
@@ -63,6 +63,12 @@ def test_get_from_date(client, mood_date, status_code, headers):
                     "value": 10,
                     "description": "Alimentação de teste.",
                 },
+                "sleeps": {
+                    "date": "2012-12-21",
+                    "value": 10,
+                    "minutes": 360,
+                    "description": "Sono de teste.",
+                },
                 "extra": {"this": "should break things"},
             },
             400,
@@ -86,6 +92,12 @@ def test_get_from_date(client, mood_date, status_code, headers):
                     "date": "2012-12-21",
                     "value": 10,
                     "description": "Alimentação de teste.",
+                },
+                "sleeps": {
+                    "date": "2012-12-21",
+                    "value": 10,
+                    "minutes": 360,
+                    "description": "Sono de teste.",
                 },
             },
             400,
@@ -114,6 +126,12 @@ def test_get_from_date(client, mood_date, status_code, headers):
                     "date": "2012-12-21",
                     "value": 10,
                     "description": "Alimentação de teste.",
+                },
+                "sleeps": {
+                    "date": "2012-12-21",
+                    "value": 10,
+                    "minutes": 360,
+                    "description": "Sono de teste.",
                 },
             },
             201,
@@ -154,6 +172,11 @@ def test_post(client, body, status_code, headers, uow: AbstractUnitOfWork):
                     "value": 10,
                     "description": "Alimentação de teste.",
                 },
+                "sleeps": {
+                    "value": 10,
+                    "minutes": 360,
+                    "description": "Sono de teste.",
+                },
                 "extra": {"this": "should break things"},
             },
             400,
@@ -177,6 +200,11 @@ def test_post(client, body, status_code, headers, uow: AbstractUnitOfWork):
                 "food_habits": {
                     "value": 10,
                     "description": "Alimentação de teste.",
+                },
+                "sleeps": {
+                    "value": 10,
+                    "minutes": 360,
+                    "description": "Sono de teste.",
                 },
             },
             200,
@@ -230,6 +258,16 @@ def test_update(client, body, status_code, headers, uow: AbstractUnitOfWork):
                     "date": "2012-12-21",
                     "value": 1,
                     "description": "Alimentação for updating.",
+                }
+            )
+        ],
+        "sleeps": [
+            Sleep(
+                **{
+                    "date": "2012-12-21",
+                    "value": 1,
+                    "minutes": 1,
+                    "description": "Sono for updating.",
                 }
             )
         ],
@@ -287,12 +325,23 @@ def test_update(client, body, status_code, headers, uow: AbstractUnitOfWork):
                     }
                 )
             ],
+            "sleeps": [
+                Sleep(
+                    **{
+                        "date": "2012-12-21",
+                        "value": 1,
+                        "minutes": 1,
+                        "description": "Sono for updating.",
+                    }
+                )
+            ],
         }
         params_classes = {
             "humors": Humor,
             "water_intakes": Water,
             "exercises": Exercises,
             "food_habits": Food,
+            "sleeps": Sleep
         }
         mood_updated_params = {
             key: [params_classes.get(key)(date="2012-12-21", **body.get(key))]
@@ -326,11 +375,20 @@ def test_delete(client, headers, uow: AbstractUnitOfWork):
             health_based=True,
         )
     ]
+    sleep = [
+        Sleep(
+            date="2012-12-21",
+            value="1",
+            minutes=10,
+            description="Sleep for deletion",
+        )
+    ]
     mood = Mood(
         date="2012-12-21",
         humors=humor,
         food_habits=food,
         exercises=exercise,
+        sleeps=sleep,
         water_intakes=water_intake,
         user_id=1,
     )

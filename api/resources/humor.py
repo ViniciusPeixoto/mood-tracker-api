@@ -137,7 +137,7 @@ class HumorResource(Resource):
             return
 
         all_humors = {
-            humor.id: json.loads(str(humor))
+            humor.id: humor.as_dict()
             for humor in humors
             if humor.mood.user_id == user.id
         }

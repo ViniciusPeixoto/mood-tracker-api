@@ -14,6 +14,7 @@ from api.repository.models import (
     Food,
     Humor,
     Mood,
+    Sleep,
     User,
     UserAuth,
     Water,
@@ -110,6 +111,12 @@ def populate_db(engine, db_session, create_access_token):
             pee=True,
             mood_id=1,
         ),
+        "sleep": Sleep(
+            value=10,
+            minutes=480,
+            description="sleep description for testing",
+            mood_id=1,
+        )
     }
 
     for table in params.values():

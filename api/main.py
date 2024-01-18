@@ -11,6 +11,7 @@ from api.resources.food import FoodResource
 from api.resources.humor import HumorResource
 from api.resources.login import LoginResource
 from api.resources.mood import MoodResource
+from api.resources.sleep import SleepResource
 from api.resources.water import WaterResource
 
 logging.config.fileConfig(get_logging_conf())
@@ -44,6 +45,10 @@ def load_routes(app: falcon.App, uow: AbstractUnitOfWork) -> None:
         app.add_route("/food", FoodResource(uow), suffix="add")
         app.add_route("/food/{food_id}", FoodResource(uow))
         app.add_route("/food/date/{food_date}", FoodResource(uow), suffix="date")
+
+        app.add_route("/sleep", SleepResource(uow), suffix="add")
+        app.add_route("/sleep/{sleep_id}", SleepResource(uow))
+        app.add_route("/sleep/date/{sleep_date}", SleepResource(uow), suffix="date")
 
         app.add_route("/mood", MoodResource(uow))
         app.add_route("/mood/{mood_id}", MoodResource(uow))
