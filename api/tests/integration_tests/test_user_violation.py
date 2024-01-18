@@ -34,7 +34,7 @@ def test_user_cannot_access_items_from_another_user(client, uow: AbstractUnitOfW
         uow.commit()
 
     headers = {"Authorization": f"Bearer: {token}"}
-    for endpoint in ["/exercises", "/food", "/humor", "/mood", "/water-intake"]:
+    for endpoint in ["/exercises", "/food", "/humor", "/mood", "/water-intake", "/sleep"]:
         result = client.simulate_get(f"{endpoint}/1", headers=headers)
         assert result.status_code == 403
 

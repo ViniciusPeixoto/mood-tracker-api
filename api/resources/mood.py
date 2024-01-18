@@ -7,7 +7,7 @@ from datetime import datetime
 import falcon
 
 from api.config.config import get_logging_conf
-from api.repository.models import Exercises, Food, Humor, Mood, Water
+from api.repository.models import Exercises, Food, Humor, Mood, Sleep, Water
 from api.resources.base import Resource
 
 logging.config.fileConfig(get_logging_conf())
@@ -29,6 +29,7 @@ class MoodResource(Resource):
             food_habits: data for food habits entry
             humors: data for humors entry
             water_intakes: data for water intakes entry
+            sleeps: data for sleeps entry
     `POST` /mood/date/{mood_date}
         Adds a new mood entry for a given date using pre-existing data for the date
     `PATCH` /mood/{mood_id}
@@ -179,7 +180,7 @@ class MoodResource(Resource):
             resp.status = falcon.HTTP_BAD_REQUEST
             return
 
-        allowed_params = ["date", "humors", "water_intakes", "exercises", "food_habits"]
+        allowed_params = ["date", "humors", "water_intakes", "exercises", "food_habits", "sleeps"]
         if set(body.keys()).difference(allowed_params):
             simpleLogger.debug("Incorrect parameters in request body for mood.")
             resp.text = json.dumps(
@@ -193,12 +194,13 @@ class MoodResource(Resource):
             "water_intakes": Water,
             "exercises": Exercises,
             "food_habits": Food,
+            "sleeps": Sleep,
         }
 
         try:
             mood_params = {
                 key: [params_classes.get(key)(**body.get(key))]
-                for key in ["humors", "water_intakes", "exercises", "food_habits"]
+                for key in ["humors", "water_intakes", "exercises", "food_habits", "sleeps"]
             }
         except TypeError as e:
             detailedLogger.warning("Missing Mood parameter.")
@@ -228,10 +230,11 @@ class MoodResource(Resource):
             "water_intakes": self.uow.repository.add_water_intake,
             "exercises": self.uow.repository.add_exercises,
             "food_habits": self.uow.repository.add_food_habits,
+            "sleeps": self.uow.repository.add_sleep,
             "mood": self.uow.repository.add_mood,
         }
 
-        for key in ["mood", "humors", "water_intakes", "exercises", "food_habits"]:
+        for key in ["mood", "humors", "water_intakes", "exercises", "food_habits", "sleeps"]:
             try:
                 simpleLogger.debug(
                     f"Trying to add {key.title().replace('_', ' ')} data to database."
@@ -306,7 +309,7 @@ class MoodResource(Resource):
             resp.status = falcon.HTTP_BAD_REQUEST
             return
 
-        allowed_params = ["humors", "water_intakes", "exercises", "food_habits"]
+        allowed_params = ["humors", "water_intakes", "exercises", "food_habits", "sleeps"]
         if set(body.keys()).difference(allowed_params):
             simpleLogger.debug("Incorrect parameters in request body for mood.")
             resp.text = json.dumps(
@@ -320,6 +323,7 @@ class MoodResource(Resource):
             "water_intakes": Water,
             "exercises": Exercises,
             "food_habits": Food,
+            "sleeps": Sleep
         }
         try:
             mood_params = {
@@ -334,9 +338,9 @@ class MoodResource(Resource):
         try:
             simpleLogger.debug("Updating mood from database using id.")
             for key in mood_params:
-                # TODO: Fix this trash
+                # TODO: Fix this way of removing the final S
                 corrected_key = key
-                if key in ["humors", "water_intakes"]:
+                if key in ["humors", "water_intakes", "sleeps"]:
                     corrected_key = key[:-1]
                 update_function = getattr(
                     self.uow.repository, f"update_{corrected_key}"

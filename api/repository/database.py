@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Query, Session, joinedload
 
-from api.repository.models import Exercises, Food, Humor, Mood, User, UserAuth, Water
+from api.repository.models import Exercises, Food, Humor, Mood, Sleep, User, UserAuth, Water
 
 
 class AbstractRepository(ABC):
@@ -66,6 +66,21 @@ class AbstractRepository(ABC):
 
     def delete_food_habits(self, food_habits: Food) -> None:
         self._delete_food_habits(food_habits)
+
+    def add_sleep(self, sleep: Sleep) -> None:
+        self._add_sleep(sleep)
+
+    def get_sleep_by_id(self, sleep_id: int) -> Sleep:
+        return self._get_sleep_by_id(sleep_id)
+
+    def get_sleep_by_date(self, sleep_date: datetime) -> Query[Sleep]:
+        return self._get_sleep_by_date(sleep_date)
+
+    def update_sleep(self, sleep: Sleep, sleep_data: dict) -> None:
+        self._update_sleep(sleep, sleep_data)
+
+    def delete_sleep(self, sleep: Sleep) -> None:
+        self._delete_sleep(sleep)
 
     def add_mood(self, mood: Mood) -> None:
         self._add_mood(mood)
@@ -186,6 +201,26 @@ class AbstractRepository(ABC):
 
     @abstractmethod
     def _delete_food_habits(self, food_habits: Food) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _add_sleep(self, sleep: Sleep) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_sleep_by_id(self, sleep_id: int) -> Sleep:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _get_sleep_by_date(self, sleep_date: datetime) -> Query[Sleep]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _update_sleep(self, sleep: Sleep, sleep_data: dict) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _delete_sleep(self, sleep: Sleep) -> Sleep:
         raise NotImplementedError
 
     @abstractmethod
@@ -312,6 +347,22 @@ class SQLRepository(AbstractRepository):
     def _delete_food_habits(self, food_habits: Food) -> None:
         self.session.delete(food_habits)
 
+    def _add_sleep(self, sleep: Sleep) -> None:
+        self.session.add(sleep)
+
+    def _get_sleep_by_id(self, sleep_id: int) -> Sleep:
+        return self.session.query(Sleep).filter_by(id=sleep_id).first()
+
+    def _get_sleep_by_date(self, sleep_date: datetime) -> Query[Sleep]:
+        return self.session.query(Sleep).filter_by(date=sleep_date)
+
+    def _update_sleep(self, sleep: Sleep, sleep_data: dict) -> None:
+        for key in sleep_data:
+            setattr(sleep, key, sleep_data[key])
+
+    def _delete_sleep(self, sleep: Sleep) -> None:
+        self.session.delete(sleep)
+
     def _add_mood(self, mood: Mood) -> None:
         self.session.add(mood)
 
@@ -323,6 +374,7 @@ class SQLRepository(AbstractRepository):
                 joinedload(Mood.food_habits),
                 joinedload(Mood.humors),
                 joinedload(Mood.water_intakes),
+                joinedload(Mood.sleeps),
             )
             .filter_by(id=mood_id)
             .first()
@@ -337,6 +389,7 @@ class SQLRepository(AbstractRepository):
                 joinedload(Mood.food_habits),
                 joinedload(Mood.humors),
                 joinedload(Mood.water_intakes),
+                joinedload(Mood.sleeps),
             )
             .filter_by(date=mood_date)
         )

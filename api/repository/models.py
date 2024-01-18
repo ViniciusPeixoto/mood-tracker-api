@@ -159,6 +159,46 @@ class Food(Base):
         }
 
 
+class Sleep(Base):
+    __tablename__ = "user_sleep"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[Date] = mapped_column(Date, default=datetime.today().date())
+    value: Mapped[int] = mapped_column(Integer, default=5)
+    minutes: Mapped[int] = mapped_column(Integer, default=0)
+    description: Mapped[Optional[str]]
+
+    mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
+    mood: Mapped["Mood"] = relationship(back_populates="sleeps")
+
+    def __str__(self) -> str:
+        return f'{{\
+            "id":"{self.id}", \
+            "date":"{self.date}", \
+            "value":"{self.value}", \
+            "minutes":"{self.minutes}"\
+            "description":"{self.description}", \
+        }}'
+
+    def __repr__(self) -> str:
+        return f'Sleep("id"="{self.id}", "date"="{self.date}", "value"="{self.value}", "minutes"="{self.minutes}", "description"="{self.description}")'
+
+    def __eq__(self, other: object) -> bool:
+        return all(
+            [
+                str(self.date) == str(other.date),
+                self.value == other.value,
+                self.minutes == other.minutes,
+                self.description == other.description,
+            ]
+        )
+
+    def as_dict(self) -> dict:
+        return {
+            col.name: str(getattr(self, col.name)) for col in self.__table__.columns
+        }
+
+
 class Mood(Base):
     __tablename__ = "user_mood"
 
@@ -177,6 +217,9 @@ class Mood(Base):
         back_populates="mood", cascade="all, delete-orphan"
     )
     food_habits: Mapped[List["Food"]] = relationship(
+        back_populates="mood", cascade="all, delete-orphan"
+    )
+    sleeps: Mapped[List["Sleep"]] = relationship(
         back_populates="mood", cascade="all, delete-orphan"
     )
 
