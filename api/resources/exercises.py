@@ -197,6 +197,7 @@ class ExercisesResource(Resource):
             resp.text = json.dumps({"error": "Missing Exercises parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         exercise_date = body.get("date") or str(datetime.today().date())
         user = self._get_user(req.context.get("username"))
         mood = self._get_mood_from_date(exercise_date, user.id)

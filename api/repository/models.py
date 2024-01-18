@@ -202,12 +202,13 @@ class Mood(Base):
         )
 
     def as_dict(self) -> dict:
-        d = self.__dict__
+        d = self.__dict__.copy()
         d.pop("_sa_instance_state")
-        d["date"] = str(d["date"])
         for key in d:
             if key not in ["id", "user_id", "date"]:
                 d[key] =[item.as_dict() for item in d[key]]
+            else:
+                d[key] = str(d[key])
         return d
 
 

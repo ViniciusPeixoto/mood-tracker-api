@@ -15,17 +15,17 @@ detailedLogger = logging.getLogger("detailedLogger")
 
 
 class AuthMiddleware:
-    secret_key = get_jwt_secret_key()
-    ignore_paths = ["/login", "/register"]
 
     def __init__(self, uow: AbstractUnitOfWork) -> None:
         self.uow = uow
+        self.ignore_paths = ["/login", "/register"]
 
     def process_request(self, req: falcon.Request, resp: falcon.Response):
         if req.path in self.ignore_paths:
             return
 
         simpleLogger.info(f"Checking Authentication for {req.path}")
+        secret_key = get_jwt_secret_key()
         auth_header = req.get_header("Authorization")
         if not auth_header:
             simpleLogger.debug("No Authorization in header")
@@ -33,7 +33,7 @@ class AuthMiddleware:
 
         try:
             token = auth_header.split()[1]
-            decoded = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+            decoded = jwt.decode(token, secret_key, algorithms=["HS256"])
         except IndexError:
             simpleLogger.debug("Token malformed.")
             raise falcon.HTTPUnauthorized(description="Token malformed.")
@@ -64,6 +64,7 @@ class AuthMiddleware:
             return
 
         simpleLogger.info(f"Refreshing token for {req.path}.")
+        secret_key = get_jwt_secret_key()
         user_auth = self.uow.repository.get_user_auth_by_username(
             req.context.get("username")
         )
@@ -78,7 +79,7 @@ class AuthMiddleware:
             "user_auth_user_id": str(user_auth.user_id),
             "user_auth_last_login": str(user_auth.last_login),
         }
-        token = jwt.encode(refresh_data, self.secret_key, algorithm="HS256")
+        token = jwt.encode(refresh_data, secret_key, algorithm="HS256")
         try:
             self.uow.repository.update_user_auth(user_auth, {"token": token})
             self.uow.commit()

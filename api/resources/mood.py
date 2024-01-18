@@ -27,8 +27,8 @@ class MoodResource(Resource):
         Adds a new mood entry with:
             exercises: data for exercises entry
             food_habits: data for food habits entry
-            humor: data for humor entry
-            water_intake: data for water intake entry
+            humors: data for humors entry
+            water_intakes: data for water intakes entry
     `POST` /mood/date/{mood_date}
         Adds a new mood entry for a given date using pre-existing data for the date
     `PATCH` /mood/{mood_id}
@@ -56,6 +56,7 @@ class MoodResource(Resource):
             `200 OK`: Mood's data successfully retrieved
         """
         simpleLogger.info(f"GET /mood/{mood_id}")
+        user = self._get_user(req.context.get("username"))
         mood = None
 
         try:
@@ -74,6 +75,14 @@ class MoodResource(Resource):
             simpleLogger.debug(f"No Mood data with id {mood_id}.")
             resp.text = json.dumps({"error": f"No Mood data with id {mood_id}."})
             resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        if user.id != mood.user_id:
+            simpleLogger.debug(f"Invalid user for mood {mood_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for mood {mood_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
             return
 
         resp.text = json.dumps(mood.as_dict())
@@ -146,8 +155,8 @@ class MoodResource(Resource):
         `POST` /mood
 
         Required Body:
-            `humor`: a Humor object
-            `water_intake`: a Water object.
+            `humors`: a Humor object
+            `water_intakes`: a Water object.
             `exercises`: an Exercises object.
             `food_habits`: a Food object.
 
@@ -161,6 +170,7 @@ class MoodResource(Resource):
             `201 CREATED`: Mood's data successfully added
         """
         simpleLogger.info("POST /mood")
+        user = self._get_user(req.context.get("username"))
         body = req.stream.read(req.content_length or 0)
         body = json.loads(body.decode("utf-8"))
         if not body:
@@ -169,7 +179,7 @@ class MoodResource(Resource):
             resp.status = falcon.HTTP_BAD_REQUEST
             return
 
-        allowed_params = ["date", "humor", "water_intake", "exercises", "food_habits"]
+        allowed_params = ["date", "humors", "water_intakes", "exercises", "food_habits"]
         if set(body.keys()).difference(allowed_params):
             simpleLogger.debug("Incorrect parameters in request body for mood.")
             resp.text = json.dumps(
@@ -179,16 +189,16 @@ class MoodResource(Resource):
             return
 
         params_classes = {
-            "humor": Humor,
-            "water_intake": Water,
+            "humors": Humor,
+            "water_intakes": Water,
             "exercises": Exercises,
             "food_habits": Food,
         }
 
         try:
             mood_params = {
-                key: params_classes.get(key)(**body.get(key))
-                for key in ["humor", "water_intake", "exercises", "food_habits"]
+                key: [params_classes.get(key)(**body.get(key))]
+                for key in ["humors", "water_intakes", "exercises", "food_habits"]
             }
         except TypeError as e:
             detailedLogger.warning("Missing Mood parameter.")
@@ -201,7 +211,7 @@ class MoodResource(Resource):
 
         try:
             simpleLogger.debug("Trying to create a Mood instance.")
-            mood = Mood(**mood_params)
+            mood = Mood(**mood_params, user_id=user.id)
             mood_params["mood"] = mood
         except TypeError as e:
             detailedLogger.error("Could not create a Mood instance!", exc_info=True)
@@ -214,19 +224,22 @@ class MoodResource(Resource):
             return
 
         params_db_functions = {
-            "humor": self.uow.repository.add_humor,
-            "water_intake": self.uow.repository.add_water_intake,
+            "humors": self.uow.repository.add_humor,
+            "water_intakes": self.uow.repository.add_water_intake,
             "exercises": self.uow.repository.add_exercises,
             "food_habits": self.uow.repository.add_food_habits,
             "mood": self.uow.repository.add_mood,
         }
 
-        for key in ["humor", "water_intake", "exercises", "food_habits", "mood"]:
+        for key in ["mood", "humors", "water_intakes", "exercises", "food_habits"]:
             try:
                 simpleLogger.debug(
                     f"Trying to add {key.title().replace('_', ' ')} data to database."
                 )
-                params_db_functions[key](mood_params[key])
+                if isinstance(mood_params[key], Mood):
+                    params_db_functions[key](mood_params[key])
+                else:
+                    params_db_functions[key](mood_params[key].pop())
                 self.uow.commit()
             except Exception as e:
                 detailedLogger.error(
@@ -259,6 +272,7 @@ class MoodResource(Resource):
             `200 OK`: Humor's data successfully updated
         """
         simpleLogger.info(f"PATCH /mood/{mood_id}")
+        user = self._get_user(req.context.get("username"))
         mood = None
         try:
             simpleLogger.debug("Fetching mood from database using id.")
@@ -272,6 +286,20 @@ class MoodResource(Resource):
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
 
+        if not mood:
+            simpleLogger.debug(f"No Mood data with id {mood_id}.")
+            resp.text = json.dumps({"error": f"No Mood data with id {mood_id}."})
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        if user.id != mood.user_id:
+            simpleLogger.debug(f"Invalid user for mood {mood_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for mood {mood_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
+            return
+
         body = req.stream.read(req.content_length or 0)
         body = json.loads(body.decode("utf-8"))
         if not body:
@@ -280,7 +308,7 @@ class MoodResource(Resource):
             resp.status = falcon.HTTP_BAD_REQUEST
             return
 
-        allowed_params = ["humor", "water_intake", "exercises", "food_habits"]
+        allowed_params = ["humors", "water_intakes", "exercises", "food_habits"]
         if set(body.keys()).difference(allowed_params):
             simpleLogger.debug("Incorrect parameters in request body for mood.")
             resp.text = json.dumps(
@@ -290,8 +318,8 @@ class MoodResource(Resource):
             return
 
         params_classes = {
-            "humor": Humor,
-            "water_intake": Water,
+            "humors": Humor,
+            "water_intakes": Water,
             "exercises": Exercises,
             "food_habits": Food,
         }
@@ -308,12 +336,17 @@ class MoodResource(Resource):
         try:
             simpleLogger.debug("Updating mood from database using id.")
             for key in mood_params:
-                update_function = getattr(self.uow.repository, f"update_{key}")
+                # TODO: Fix this trash
+                corrected_key = key
+                if key in ["humors", "water_intakes"]:
+                    corrected_key = key[:-1]
+                update_function = getattr(self.uow.repository, f"update_{corrected_key}")
                 update_param = getattr(mood, key)
                 simpleLogger.debug(
                     f"Updating {key.replace('_', ' ')} from database using id."
                 )
-                update_function(update_param, body[key])
+                for param in update_param:
+                    update_function(param, body[key])
             self.uow.commit()
         except Exception as e:
             detailedLogger.error(
@@ -324,7 +357,7 @@ class MoodResource(Resource):
             return
 
         updated_mood = self.uow.repository.get_mood_by_id(mood_id)
-        resp.text = json.dumps(json.loads(str(updated_mood)))
+        resp.text = json.dumps(updated_mood.as_dict())
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"PATCH /mood/{mood_id} : successful")
 
@@ -345,6 +378,7 @@ class MoodResource(Resource):
             `204 No Content`: Mood's data successfully deleted
         """
         simpleLogger.info(f"DELETE /mood/{mood_id}")
+        user = self._get_user(req.context.get("username"))
         mood = None
         try:
             simpleLogger.debug("Fetching mood from database using id.")
@@ -362,6 +396,14 @@ class MoodResource(Resource):
             simpleLogger.debug(f"No Mood data with id {mood_id}.")
             resp.text = json.dumps({"error": f"No Mood data with id {mood_id}."})
             resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        if user.id != mood.user_id:
+            simpleLogger.debug(f"Invalid user for mood {mood_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for mood {mood_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
             return
 
         try:
@@ -400,6 +442,7 @@ class MoodResource(Resource):
             `204 No Content`: Moods' data successfully deleted
         """
         simpleLogger.info(f"DELETE /mood/date/{mood_date}")
+        user = self._get_user(req.context.get("username"))
         moods = None
 
         try:
@@ -414,6 +457,7 @@ class MoodResource(Resource):
             )
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+
         try:
             simpleLogger.debug("Fetching mood from database using date.")
             moods = self.uow.repository.get_mood_by_date(mood_date)
@@ -435,6 +479,14 @@ class MoodResource(Resource):
         try:
             simpleLogger.debug("Deleting mood from database using date.")
             for mood in moods:
+                if user.id != mood.user_id:
+                    simpleLogger.debug(f"Invalid user for mood {mood.id}.")
+                    resp.text = json.dumps(
+                        {"error": f"Invalid user for mood {mood.id}."}
+                    )
+                    resp.status = falcon.HTTP_FORBIDDEN
+                    self.uow.rollback()
+                    return
                 self.uow.repository.delete_mood(mood)
             self.uow.commit()
         except Exception as e:
