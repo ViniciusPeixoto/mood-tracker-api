@@ -1,5 +1,7 @@
+import json
+
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy import Boolean, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -13,13 +15,13 @@ class Humor(Base):
     __tablename__ = "user_humor"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
+    date: Mapped[Date] = mapped_column(Date, default=datetime.today().date())
     value: Mapped[int] = mapped_column(Integer, default=5)
     description: Mapped[Optional[str]]
     health_based: Mapped[bool] = mapped_column(Boolean, default=False)
 
     mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
-    mood: Mapped["Mood"] = relationship(back_populates="humor")
+    mood: Mapped["Mood"] = relationship(back_populates="humors")
 
     def __str__(self) -> str:
         return f'{{\
@@ -43,18 +45,21 @@ class Humor(Base):
             ]
         )
 
+    def as_dict(self) -> dict:
+        return {col.name: str(getattr(self, col.name)) for col in self.__table__.columns}
+
 
 class Water(Base):
     __tablename__ = "user_water_intake"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
+    date: Mapped[Date] = mapped_column(Date, default=datetime.today().date())
     milliliters: Mapped[int]
     description: Mapped[Optional[str]]
     pee: Mapped[bool] = mapped_column(Boolean, default=False)
 
     mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
-    mood: Mapped["Mood"] = relationship(back_populates="water_intake")
+    mood: Mapped["Mood"] = relationship(back_populates="water_intakes")
 
     def __str__(self) -> str:
         return f'{{\
@@ -78,12 +83,14 @@ class Water(Base):
             ]
         )
 
+    def as_dict(self) -> dict:
+        return {col.name: str(getattr(self, col.name)) for col in self.__table__.columns}
 
 class Exercises(Base):
     __tablename__ = "user_exercises"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
+    date: Mapped[Date] = mapped_column(Date, default=datetime.today().date())
     minutes: Mapped[int] = mapped_column(Integer, default=0)
     description: Mapped[Optional[str]]
 
@@ -91,12 +98,7 @@ class Exercises(Base):
     mood: Mapped["Mood"] = relationship(back_populates="exercises")
 
     def __str__(self) -> str:
-        return f'{{\
-            "id":"{self.id}", \
-            "date":"{self.date}", \
-            "minutes":"{self.minutes}", \
-            "description":"{self.description}" \
-        }}'
+        return f'{{"id":"{self.id}", "date":"{self.date}", "minutes":"{self.minutes}", "description":"{self.description}"}}'
 
     def __repr__(self) -> str:
         return f'Exercises("id"="{self.id}", "date"="{self.date}", "minutes"="{self.minutes}", "description"="{self.description}")'
@@ -110,12 +112,15 @@ class Exercises(Base):
             ]
         )
 
+    def as_dict(self) -> dict:
+        return {col.name: str(getattr(self, col.name)) for col in self.__table__.columns}
+
 
 class Food(Base):
     __tablename__ = "user_food_habits"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
+    date: Mapped[Date] = mapped_column(Date, default=datetime.today().date())
     value: Mapped[int]
     description: Mapped[str] = mapped_column(String(256))
 
@@ -142,52 +147,69 @@ class Food(Base):
             ]
         )
 
+    def as_dict(self) -> dict:
+        return {col.name: str(getattr(self, col.name)) for col in self.__table__.columns}
+
 
 class Mood(Base):
     __tablename__ = "user_mood"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
+    date: Mapped[Date] = mapped_column(Date, default=datetime.today().date(), unique=True)
 
-    humor: Mapped["Humor"] = relationship(
+    humors: Mapped[List["Humor"]] = relationship(
         back_populates="mood", cascade="all, delete-orphan"
     )
-    water_intake: Mapped["Water"] = relationship(
+    water_intakes: Mapped[List["Water"]] = relationship(
         back_populates="mood", cascade="all, delete-orphan"
     )
-    exercises: Mapped["Exercises"] = relationship(
+    exercises: Mapped[List["Exercises"]] = relationship(
         back_populates="mood", cascade="all, delete-orphan"
     )
-    food_habits: Mapped["Food"] = relationship(
+    food_habits: Mapped[List["Food"]] = relationship(
         back_populates="mood", cascade="all, delete-orphan"
     )
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    user: Mapped["User"] = relationship(back_populates="mood")
+    user: Mapped["User"] = relationship(back_populates="moods")
 
     def __str__(self) -> str:
+        exercises = [str(exercises) for exercises in self.exercises]
+        humors = [str(humor) for humor in self.humors]
+        food_habits = [str(food_habits) for food_habits in self.food_habits]
+        water_intakes = [str(water_intakes) for water_intakes in self.water_intakes]
         return f'{{\
             "id":"{self.id}", \
             "date":"{self.date}", \
-            "humor":{self.humor}, \
-            "water_intake":{self.water_intake}, \
-            "exercises":{self.exercises}, \
-            "food_habits":{self.food_habits}\
+            "humor":{humors}, \
+            "water_intake":{water_intakes}, \
+            "exercises":{exercises}, \
+            "food_habits":{food_habits}\
         }}'
 
     def __repr__(self) -> str:
-        return f'Mood("id"="{self.id}", "date"="{self.date}", "humor"={self.humor}, "water_intake"={self.water_intake}, "exercises"={self.exercises}, "food_habits"={self.food_habits})'
+        return f'Mood("id"="{self.id}", "date"="{self.date}", "humor"={self.humors}, "water_intake"={self.water_intakes}, "exercises"={self.exercises}, "food_habits"={self.food_habits})'
 
     def __eq__(self, other: object) -> bool:
         return all(
             [
                 str(self.date) == str(other.date),
-                self.humor == other.humor,
-                self.water_intake == other.water_intake,
+                self.humors == other.humors,
+                self.water_intakes == other.water_intakes,
                 self.exercises == other.exercises,
                 self.food_habits == other.food_habits,
             ]
         )
+
+    def as_dict(self) -> dict:
+        d = self.__dict__.copy()
+        d.pop("_sa_instance_state")
+        for key in d:
+            if key not in ["id", "user_id", "date"]:
+                d[key] =[item.as_dict() for item in d[key]]
+            else:
+                d[key] = str(d[key])
+        return d
 
 
 class User(Base):
@@ -195,7 +217,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    mood: Mapped["Mood"] = relationship(
+    moods: Mapped[List["Mood"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
     user_auth: Mapped["UserAuth"] = relationship(
@@ -208,6 +230,9 @@ class User(Base):
     def __repr__(self) -> str:
         return f'User("id"="{self.id}")'
 
+    def as_dict(self) -> dict:
+        return {col.name: str(getattr(self, col.name)) for col in self.__table__.columns}
+
 
 class UserAuth(Base):
     __tablename__ = "user_auth"
@@ -215,8 +240,8 @@ class UserAuth(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(128), unique=True)
     password: Mapped[str] = mapped_column(String(256))
-    created_at: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
-    last_login: Mapped[datetime] = mapped_column(Date, default=datetime.today().date())
+    created_at: Mapped[datetime] = mapped_column(Date, default=datetime.now())
+    last_login: Mapped[datetime] = mapped_column(Date, default=datetime.now())
     token: Mapped[str] = mapped_column(String(512))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
 

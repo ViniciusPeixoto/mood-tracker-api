@@ -8,7 +8,7 @@ import jwt
 from sqlalchemy.exc import IntegrityError
 from psycopg2.errors import UniqueViolation
 
-from api.config.config import AUTHENTICATION_TTL, get_jwt_secret_key, get_logging_conf
+from api.config.config import get_auth_ttl, get_jwt_secret_key, get_logging_conf
 from api.repository.models import User, UserAuth
 from api.resources.base import Resource
 
@@ -89,7 +89,7 @@ class LoginResource(Resource):
         login_data = {
             "exp": str(
                 int(
-                    (datetime.now() + timedelta(minutes=AUTHENTICATION_TTL)).timestamp()
+                    (datetime.now() + timedelta(minutes=get_auth_ttl())).timestamp()
                 )
             ),
             "user_auth_id": str(user_auth.id),

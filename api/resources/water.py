@@ -52,6 +52,7 @@ class WaterResource(Resource):
             `200 OK`: Water intake's data successfully retrieved
         """
         simpleLogger.info(f"GET /water-intake/{water_intake_id}")
+        user = self._get_user(req.context.get("username"))
         water_intake = None
 
         try:
@@ -77,7 +78,15 @@ class WaterResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.text = json.dumps(json.loads(str(water_intake)))
+        if user.id != water_intake.mood.user_id:
+            simpleLogger.debug(f"Invalid user for water intake {water_intake_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for water intake {water_intake_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
+            return
+
+        resp.text = json.dumps(water_intake.as_dict())
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"GET /water-intake/{water_intake_id} : successful")
 
@@ -102,6 +111,7 @@ class WaterResource(Resource):
             `200 OK`: Water intakes' data successfully retrieved
         """
         simpleLogger.info(f"GET /water-intake/date/{water_intake_date}")
+        user = self._get_user(req.context.get("username"))
         water_intakes = None
 
         try:
@@ -145,8 +155,8 @@ class WaterResource(Resource):
             return
 
         all_water_intakes = {
-            water_intake.id: json.loads(str(water_intake))
-            for water_intake in water_intakes
+            water_intake.id: water_intake.as_dict()
+            for water_intake in water_intakes if water_intake.mood.user_id == user.id
         }
 
         resp.text = json.dumps(all_water_intakes)
@@ -194,9 +204,12 @@ class WaterResource(Resource):
             resp.text = json.dumps({"error": "Missing Water parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+        water_intake_date = body.get("date") or str(datetime.today().date())
+        user = self._get_user(req.context.get("username"))
+        mood = self._get_mood_from_date(water_intake_date, user.id)
 
         try:
-            water_intake = Water(**body)
+            water_intake = Water(**body, mood_id=mood.id)
         except Exception as e:
             detailedLogger.error(
                 "Could not create a Water Intake instance!", exc_info=True
@@ -243,9 +256,10 @@ class WaterResource(Resource):
 
             `500 Server Error`: Database error
 
-            `200 OK`: Exercises's data successfully updated
+            `200 OK`: Water Intake's data successfully updated
         """
         simpleLogger.info(f"PATCH /water-intake/{water_intake_id}")
+        user = self._get_user(req.context.get("username"))
         water_intake = None
 
         try:
@@ -261,6 +275,22 @@ class WaterResource(Resource):
                 {"error": "The server could not fetch the water intake."}
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+            return
+
+        if not water_intake:
+            simpleLogger.debug(f"No Water Intake data with id {water_intake_id}.")
+            resp.text = json.dumps(
+                {"error": f"No Water Intake data with id {water_intake_id}."}
+            )
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        if user.id != water_intake.mood.user_id:
+            simpleLogger.debug(f"Invalid user for water intake {water_intake_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for water intake {water_intake_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
             return
 
         body = req.stream.read(req.content_length or 0)
@@ -298,7 +328,7 @@ class WaterResource(Resource):
         updated_water_intake = self.uow.repository.get_water_intake_by_id(
             water_intake_id
         )
-        resp.text = json.dumps(json.loads(str(updated_water_intake)))
+        resp.text = json.dumps(updated_water_intake.as_dict())
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"PATCH /water-intake/{water_intake_id} : successful")
 
@@ -321,6 +351,7 @@ class WaterResource(Resource):
             `204 No Content`: Water Intake's data successfully deleted
         """
         simpleLogger.info(f"DELETE /water-intake/{water_intake_id}")
+        user = self._get_user(req.context.get("username"))
         water_intake = None
 
         try:
@@ -344,6 +375,14 @@ class WaterResource(Resource):
                 {"error": f"No Water Intake data with id {water_intake_id}."}
             )
             resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        if user.id != water_intake.mood.user_id:
+            simpleLogger.debug(f"Invalid user for water intake {water_intake_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for water intake {water_intake_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
             return
 
         try:
@@ -385,6 +424,7 @@ class WaterResource(Resource):
             `204 No Content`: Water Intakes' data successfully deleted
         """
         simpleLogger.info(f"DELETE /water-intake/date/{water_intake_date}")
+        user = self._get_user(req.context.get("username"))
         water_intakes = None
 
         try:
@@ -430,6 +470,14 @@ class WaterResource(Resource):
         try:
             simpleLogger.debug("Deleting water_intake from database using date.")
             for water_intake in water_intakes:
+                if user.id != water_intake.mood.user_id:
+                    simpleLogger.debug(f"Invalid user for water intake {water_intake.id}.")
+                    resp.text = json.dumps(
+                        {"error": f"Invalid user for water intake {water_intake.id}."}
+                    )
+                    resp.status = falcon.HTTP_FORBIDDEN
+                    self.uow.rollback()
+                    return
                 self.uow.repository.delete_water_intake(water_intake)
             self.uow.commit()
         except Exception as e:

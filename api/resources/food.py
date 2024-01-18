@@ -51,6 +51,7 @@ class FoodResource(Resource):
             `200 OK`: Food habit's data successfully retrieved
         """
         simpleLogger.info(f"GET /food/{food_id}")
+        user = self._get_user(req.context.get("username"))
         food = None
 
         try:
@@ -73,7 +74,15 @@ class FoodResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.text = json.dumps(json.loads(str(food)))
+        if user.id != food.mood.user_id:
+            simpleLogger.debug(f"Invalid user for food {food_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for food {food_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
+            return
+
+        resp.text = json.dumps(food.as_dict())
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"GET /food/{food_id} : successful")
 
@@ -96,6 +105,7 @@ class FoodResource(Resource):
             `200 OK`: Food habits' data successfully retrieved
         """
         simpleLogger.info(f"GET /food/date/{food_date}")
+        user = self._get_user(req.context.get("username"))
         foods = None
 
         try:
@@ -129,7 +139,7 @@ class FoodResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_foods = {food.id: json.loads(str(food)) for food in foods}
+        all_foods = {food.id: food.as_dict() for food in foods if food.mood.user_id == user.id}
 
         resp.text = json.dumps(all_foods)
         resp.status = falcon.HTTP_OK
@@ -175,9 +185,12 @@ class FoodResource(Resource):
             resp.text = json.dumps({"error": "Missing Food parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+        food_date = body.get("date") or str(datetime.today().date())
+        user = self._get_user(req.context.get("username"))
+        mood = self._get_mood_from_date(food_date, user.id)
 
         try:
-            food = Food(**body)
+            food = Food(**body, mood_id=mood.id)
         except Exception as e:
             detailedLogger.error("Could not create a Food instance!", exc_info=True)
             resp.text = json.dumps(
@@ -223,6 +236,7 @@ class FoodResource(Resource):
             `200 OK`: Food's data successfully updated
         """
         simpleLogger.info(f"PATCH /food/{food_id}")
+        user = self._get_user(req.context.get("username"))
         food_habits = None
 
         try:
@@ -238,6 +252,23 @@ class FoodResource(Resource):
             )
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
+
+        if not food_habits:
+            simpleLogger.debug(f"No Food Habits data with id {food_id}.")
+            resp.text = json.dumps(
+                {"error": f"No Food Habits data with id {food_id}."}
+            )
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        if user.id != food_habits.mood.user_id:
+            simpleLogger.debug(f"Invalid user for food {food_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for food {food_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
+            return
+
 
         body = req.stream.read(req.content_length or 0)
         body = json.loads(body.decode("utf-8"))
@@ -257,7 +288,7 @@ class FoodResource(Resource):
             return
 
         try:
-            simpleLogger.debug("Updatingfood habits from database using id.")
+            simpleLogger.debug("Updating food habits from database using id.")
             self.uow.repository.update_food_habits(food_habits, body)
             self.uow.commit()
         except Exception as e:
@@ -272,7 +303,7 @@ class FoodResource(Resource):
             return
 
         updated_food = self.uow.repository.get_food_habits_by_id(food_id)
-        resp.text = json.dumps(json.loads(str(updated_food)))
+        resp.text = json.dumps(updated_food.as_dict())
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"PATCH /food/{food_id} : successful")
 
@@ -293,6 +324,7 @@ class FoodResource(Resource):
             `204 No Content`: Food's data successfully deleted
         """
         simpleLogger.info(f"DELETE /food/{food_id}")
+        user = self._get_user(req.context.get("username"))
         food = None
 
         try:
@@ -311,6 +343,14 @@ class FoodResource(Resource):
             simpleLogger.debug(f"No Food data with id {food_id}.")
             resp.text = json.dumps({"error": f"No Food data with id {food_id}."})
             resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        if user.id != food.mood.user_id:
+            simpleLogger.debug(f"Invalid user for food {food_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for food {food_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
             return
 
         try:
@@ -349,6 +389,7 @@ class FoodResource(Resource):
             `204 No Content`: Foods' data successfully deleted
         """
         simpleLogger.info(f"DELETE /food/date/{food_date}")
+        user = self._get_user(req.context.get("username"))
         foods = None
 
         try:
@@ -385,6 +426,14 @@ class FoodResource(Resource):
         try:
             simpleLogger.debug("Deleting foods from database using date.")
             for food in foods:
+                if user.id != food.mood.user_id:
+                    simpleLogger.debug(f"Invalid user for food {food.id}.")
+                    resp.text = json.dumps(
+                        {"error": f"Invalid user for food {food.id}."}
+                    )
+                    resp.status = falcon.HTTP_FORBIDDEN
+                    self.uow.rollback()
+                    return
                 self.uow.repository.delete_food_habits(food)
             self.uow.commit()
         except Exception as e:

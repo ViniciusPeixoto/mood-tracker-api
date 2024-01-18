@@ -52,6 +52,7 @@ class HumorResource(Resource):
             `200 OK`: Humor's data successfully retrieved
         """
         simpleLogger.info(f"GET /humor/{humor_id}")
+        user = self._get_user(req.context.get("username"))
         humor = None
 
         try:
@@ -72,7 +73,15 @@ class HumorResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        resp.text = json.dumps(json.loads(str(humor)))
+        if user.id != humor.mood.user_id:
+            simpleLogger.debug(f"Invalid user for humor {humor_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for humor {humor_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
+            return
+
+        resp.text = json.dumps(humor.as_dict())
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"GET /humor/{humor_id} : successful")
 
@@ -95,6 +104,7 @@ class HumorResource(Resource):
             `200 OK`: Humors' data successfully retrieved
         """
         simpleLogger.info(f"GET /humor/date/{humor_date}")
+        user = self._get_user(req.context.get("username"))
         humors = None
 
         try:
@@ -128,7 +138,7 @@ class HumorResource(Resource):
             resp.status = falcon.HTTP_NOT_FOUND
             return
 
-        all_humors = {humor.id: json.loads(str(humor)) for humor in humors}
+        all_humors = {humor.id: json.loads(str(humor)) for humor in humors if humor.mood.user_id == user.id}
 
         resp.text = json.dumps(all_humors)
         resp.status = falcon.HTTP_OK
@@ -175,9 +185,12 @@ class HumorResource(Resource):
             resp.text = json.dumps({"error": "Missing Humor parameter."})
             resp.status = falcon.HTTP_BAD_REQUEST
             return
+        humor_date = body.get("date") or str(datetime.today().date())
+        user = self._get_user(req.context.get("username"))
+        mood = self._get_mood_from_date(humor_date, user.id)
 
         try:
-            humor = Humor(**body)
+            humor = Humor(**body, mood_id=mood.id)
         except Exception as e:
             detailedLogger.error("Could not create a Humor instance!", exc_info=True)
             resp.text = json.dumps(
@@ -220,6 +233,7 @@ class HumorResource(Resource):
             `200 OK`: Humor's data successfully updated
         """
         simpleLogger.info(f"PATCH /humor/{humor_id}")
+        user = self._get_user(req.context.get("username"))
         humor = None
 
         try:
@@ -233,6 +247,23 @@ class HumorResource(Resource):
             resp.text = json.dumps({"error": "The server could not fetch the humor."})
             resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
             return
+
+        if not humor:
+            simpleLogger.debug(f"No Humor data with id {humor_id}.")
+            resp.text = json.dumps(
+                {"error": f"No Humor data with id {humor_id}."}
+            )
+            resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        if user.id != humor.mood.user_id:
+            simpleLogger.debug(f"Invalid user for exercise {humor_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for exercise {humor_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
+            return
+
 
         body = req.stream.read(req.content_length or 0)
         body = json.loads(body.decode("utf-8"))
@@ -264,7 +295,7 @@ class HumorResource(Resource):
             return
 
         updated_humor = self.uow.repository.get_humor_by_id(humor_id)
-        resp.text = json.dumps(json.loads(str(updated_humor)))
+        resp.text = json.dumps(updated_humor.as_dict())
         resp.status = falcon.HTTP_OK
         simpleLogger.info(f"PATCH /humor/{humor_id} : successful")
 
@@ -285,6 +316,7 @@ class HumorResource(Resource):
             `204 No Content`: Humor's data successfully deleted
         """
         simpleLogger.info(f"DELETE /humor/{humor_id}")
+        user = self._get_user(req.context.get("username"))
         humor = None
 
         try:
@@ -303,6 +335,14 @@ class HumorResource(Resource):
             simpleLogger.debug(f"No Humor data with id {humor_id}.")
             resp.text = json.dumps({"error": f"No Humor data with id {humor_id}."})
             resp.status = falcon.HTTP_NOT_FOUND
+            return
+
+        if user.id != humor.mood.user_id:
+            simpleLogger.debug(f"Invalid user for humor {humor_id}.")
+            resp.text = json.dumps(
+                {"error": f"Invalid user for humor {humor_id}."}
+            )
+            resp.status = falcon.HTTP_FORBIDDEN
             return
 
         try:
@@ -341,6 +381,7 @@ class HumorResource(Resource):
             `204 No Content`: Humors' data successfully deleted
         """
         simpleLogger.info(f"DELETE /humor/date/{humor_date}")
+        user = self._get_user(req.context.get("username"))
         humors = None
 
         try:
@@ -377,6 +418,14 @@ class HumorResource(Resource):
         try:
             simpleLogger.debug("Deleting humor from database using date.")
             for humor in humors:
+                if user.id != humor.mood.user_id:
+                    simpleLogger.debug(f"Invalid user for humor {humor.id}.")
+                    resp.text = json.dumps(
+                        {"error": f"Invalid user for humor {humor.id}."}
+                    )
+                    resp.status = falcon.HTTP_FORBIDDEN
+                    self.uow.rollback()
+                    return
                 self.uow.repository.delete_humor(humor)
             self.uow.commit()
         except Exception as e:
