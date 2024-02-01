@@ -16,7 +16,7 @@ class Humor(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[Date] = mapped_column(Date, default=datetime.today().date())
     value: Mapped[int] = mapped_column(Integer, default=5)
-    description: Mapped[Optional[str]]
+    description: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
     health_based: Mapped[bool] = mapped_column(Boolean, default=False)
 
     mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
@@ -55,8 +55,8 @@ class Water(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[Date] = mapped_column(Date, default=datetime.today().date())
-    milliliters: Mapped[int]
-    description: Mapped[Optional[str]]
+    milliliters: Mapped[int] = mapped_column(Integer, default=0)
+    description: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
     pee: Mapped[bool] = mapped_column(Boolean, default=False)
 
     mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
@@ -96,7 +96,7 @@ class Exercises(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[Date] = mapped_column(Date, default=datetime.today().date())
     minutes: Mapped[int] = mapped_column(Integer, default=0)
-    description: Mapped[Optional[str]]
+    description: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
 
     mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
     mood: Mapped["Mood"] = relationship(back_populates="exercises")
@@ -127,8 +127,8 @@ class Food(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[Date] = mapped_column(Date, default=datetime.today().date())
-    value: Mapped[int]
-    description: Mapped[str] = mapped_column(String(256))
+    value: Mapped[int] = mapped_column(Integer, default=5)
+    description: Mapped[str] = mapped_column(String(256), nullable=True)
 
     mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
     mood: Mapped["Mood"] = relationship(back_populates="food_habits")
@@ -166,7 +166,7 @@ class Sleep(Base):
     date: Mapped[Date] = mapped_column(Date, default=datetime.today().date())
     value: Mapped[int] = mapped_column(Integer, default=5)
     minutes: Mapped[int] = mapped_column(Integer, default=0)
-    description: Mapped[Optional[str]]
+    description: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
 
     mood_id: Mapped[int] = mapped_column(ForeignKey("user_mood.id"))
     mood: Mapped["Mood"] = relationship(back_populates="sleeps")
