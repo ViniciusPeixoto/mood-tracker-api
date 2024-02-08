@@ -1,6 +1,7 @@
 [default]
 
 [development]
+DB_DBMS = "maria-connector"
 DB_NAME = "mtdev"
 DB_USER = "admin"
 DB_HOST = "localhost"
@@ -10,6 +11,12 @@ LOGGING_FILE = "api.log"
 AUTHENTICATION_TTL = 5
 
 [production]
+DB_DBMS = "mysql"
+DB_NAME = "mtdb"
+DB_PORT = "5432"
+LOGGING_CONFIG = "logging.conf"
+LOGGING_FILE = "api.log"
+AUTHENTICATION_TTL = 5
 
 [testing]
 DB_NAME = "mttest"

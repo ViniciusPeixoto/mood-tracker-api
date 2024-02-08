@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 
 import falcon
 import jwt
-from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 
 from api.config.config import get_auth_ttl, get_jwt_secret_key, get_logging_conf
@@ -85,7 +84,16 @@ class LoginResource(Resource):
             resp.status = falcon.HTTP_UNAUTHORIZED
             return
 
-        self.uow.repository.update_user_auth(user_auth, {"last_login": datetime.now()})
+        with self.uow:
+            try:
+                self.uow.repository.update_user_auth(user_auth, {"last_login": datetime.now()})
+                self.uow.commit()
+            except Exception:
+                detailedLogger.error("Could not add last_login to user_auth.", exc_info=True)
+                resp.text = json.dumps({"error": "Could not add last_login to user_auth."})
+                resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+                return
+
         login_data = {
             "exp": str(
                 int((datetime.now() + timedelta(minutes=get_auth_ttl())).timestamp())
@@ -97,14 +105,15 @@ class LoginResource(Resource):
         }
         token = jwt.encode(login_data, get_jwt_secret_key(), algorithm="HS256")
 
-        try:
-            self.uow.repository.update_user_auth(user_auth, {"token": token})
-            self.uow.commit()
-        except Exception:
-            detailedLogger.error("Could not add token to user_auth.", exc_info=True)
-            resp.text = json.dumps({"error": "Could not add token to user_auth."})
-            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
-            return
+        with self.uow:
+            try:
+                self.uow.repository.update_user_auth(user_auth, {"token": token})
+                self.uow.commit()
+            except Exception:
+                detailedLogger.error("Could not add token to user_auth.", exc_info=True)
+                resp.text = json.dumps({"error": "Could not add token to user_auth."})
+                resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+                return
 
         resp.text = json.dumps({"token": token})
         resp.status = falcon.HTTP_OK
@@ -145,26 +154,27 @@ class LoginResource(Resource):
             resp.status = falcon.HTTP_BAD_REQUEST
             return
 
-        try:
-            user = User()
-            user_auth = UserAuth(**body, user=user, token="")
-            self.uow.repository.add_user_auth(user_auth)
-            self.uow.commit()
-        except IntegrityError as e:
-            if isinstance(e.orig, UniqueViolation):
-                detailedLogger.error("Username already exists.", exc_info=True)
-                resp.text = json.dumps({"error": "Username already exists."})
-                resp.status = falcon.HTTP_FORBIDDEN
+        with self.uow:
+            try:
+                user = User()
+                user_auth = UserAuth(**body, user=user, token="")
+                self.uow.repository.add_user_auth(user_auth)
+                self.uow.commit()
+            except IntegrityError as e:
+                if "duplicate" in e.orig.errmsg.lower():
+                    detailedLogger.error("Username already exists.", exc_info=True)
+                    resp.text = json.dumps({"error": "Username already exists."})
+                    resp.status = falcon.HTTP_FORBIDDEN
+                    return
+                detailedLogger.error("Could not add new user to database.", exc_info=True)
+                resp.text = json.dumps({"error": "Could not add new user to database."})
+                resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
                 return
-            detailedLogger.error("Could not add new user to database.", exc_info=True)
-            resp.text = json.dumps({"error": "Could not add new user to database."})
-            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
-            return
-        except Exception:
-            detailedLogger.error("Could not add new user to database.", exc_info=True)
-            resp.text = json.dumps({"error": "Could not add new user to database."})
-            resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
-            return
+            except Exception:
+                detailedLogger.error("Could not add new user to database.", exc_info=True)
+                resp.text = json.dumps({"error": "Could not add new user to database."})
+                resp.status = falcon.HTTP_INTERNAL_SERVER_ERROR
+                return
 
         resp.status = falcon.HTTP_NO_CONTENT
         simpleLogger.info(f"POST /login : successful")

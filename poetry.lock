@@ -317,6 +317,29 @@ plugins = ["setuptools"]
 requirements-deprecated-finder = ["pip-api", "pipreqs"]
 
 [[package]]
+name = "mariadb"
+version = "1.1.9"
+description = "Python MariaDB extension"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "mariadb-1.1.9-cp310-cp310-win32.whl", hash = "sha256:9c7d90860041d1e7b7f62e414fa18202059beec5ef0524fdd99d183a78175445"},
+    {file = "mariadb-1.1.9-cp310-cp310-win_amd64.whl", hash = "sha256:fed8837c050e03524720fa912f3fa63b25b7f6af2ec04643a992ed89656f6dba"},
+    {file = "mariadb-1.1.9-cp311-cp311-win32.whl", hash = "sha256:78a3d46f250d05f96229ba47818682428a3bb61f2b33cb579742bb4228719f9b"},
+    {file = "mariadb-1.1.9-cp311-cp311-win_amd64.whl", hash = "sha256:ece7a7be878982662f52ef9c63b147be413a55b68721e325a63d85f179479212"},
+    {file = "mariadb-1.1.9-cp312-cp312-win32.whl", hash = "sha256:d2a1f0dbf6800690a67d9aaa3b6d8f2067cb5c82e93e3231ecc63759657182fb"},
+    {file = "mariadb-1.1.9-cp312-cp312-win_amd64.whl", hash = "sha256:0cf20db9a5a92d8a490a3d4529575abd676f10acf743590e228a3745ac8692f5"},
+    {file = "mariadb-1.1.9-cp38-cp38-win32.whl", hash = "sha256:d09bd88e1e456bd91f92c56266bfaad058274a9a50384877eecf104eec803829"},
+    {file = "mariadb-1.1.9-cp38-cp38-win_amd64.whl", hash = "sha256:36db9c777b0ce25d482d5bf9b201456af3d749b8400fb7426abbb514d5811c0a"},
+    {file = "mariadb-1.1.9-cp39-cp39-win32.whl", hash = "sha256:64d8007c783e92f49f08fcf7baac784d8395c4db1e40dfb7c3ae1f90396f2a2a"},
+    {file = "mariadb-1.1.9-cp39-cp39-win_amd64.whl", hash = "sha256:cd6bc46a86b9947f4cf9412c5899535f238e402751e1cc496426e95ab65f74e6"},
+    {file = "mariadb-1.1.9.tar.gz", hash = "sha256:c44a5f911b0761c4553cd6d7c8e4f59d63dd6ffe91464c24c93a265e11780519"},
+]
+
+[package.dependencies]
+packaging = "*"
+
+[[package]]
 name = "mypy-extensions"
 version = "1.0.0"
 description = "Type system extensions for programs checked with the mypy type checker."
@@ -554,4 +577,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "cc8aaeead67f6bf3f91aaf157044afaff7a8a5a0ecb9935685096d382a0adf90"
+content-hash = "8a9e0ae7a3a28cf8d04db7b52f6547f1fa6e7a77da3dc699d60c3333c2e9a7fa"

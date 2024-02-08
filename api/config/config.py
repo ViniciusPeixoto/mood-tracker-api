@@ -16,12 +16,20 @@ settings = Dynaconf(
 
 
 def get_db_uri() -> str:
-    db_name = settings.DB_NAME
-    db_user = settings.DB_USER
-    db_password = settings.DB_PASSWORD
-    db_host = settings.DB_HOST
-    db_port = settings.DB_PORT
-    return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    dbms = {
+        "postgres": "postgresql",
+        "mysql-connector": "mysql+mysqlconnector",
+        "mysql-client": "mysql+mysqldb",
+        "pymysql": "mysql+pymysql",
+        "maria-connector": "mariadb+mariadbconnector",
+    }
+    db_dbms = settings.get("DB_DBMS")
+    db_name = settings.get("DB_NAME")
+    db_user = settings.get("DB_USER")
+    db_password = settings.get("DB_PASSWORD")
+    db_host = settings.get("DB_HOST")
+    db_port = settings.get("DB_PORT")
+    return f"{dbms[db_dbms]}://{db_user}:{db_password}@{db_host}{':'+db_port if db_port else ''}/{db_name}"
 
 
 def get_logging_conf() -> str:
